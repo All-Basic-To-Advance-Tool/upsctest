@@ -2681,6 +2681,117 @@
       background: linear-gradient(180deg, rgb(255, 255, 113), rgba(255, 255, 113, 0.5), transparent 70%);
       animation: bcLeft 3s ease-in-out infinite;
     }
+
+    /* loaidng page  */
+    @keyframes loadBookBounce {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(-4deg);
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(4deg);
+      }
+    }
+
+    @keyframes loadRingSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes loadRingSpinRev {
+      to {
+        transform: rotate(-360deg);
+      }
+    }
+
+    @keyframes loadDotPulse {
+
+      0%,
+      80%,
+      100% {
+        opacity: .25;
+        transform: scale(.7);
+      }
+
+      40% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes loadGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 20px #f59e0b33, 0 0 0px #3b82f600;
+      }
+
+      50% {
+        box-shadow: 0 0 34px #f59e0b66, 0 0 20px #3b82f633;
+      }
+    }
+
+    .load-orb {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #1e2a4a, #0f1117 70%);
+      animation: loadGlow 2.2s ease-in-out infinite;
+    }
+
+    .load-orb .ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid transparent;
+    }
+
+    .load-orb .ring-1 {
+      border-top-color: var(--accent);
+      border-right-color: var(--accent);
+      animation: loadRingSpin 1.4s linear infinite;
+    }
+
+    .load-orb .ring-2 {
+      inset: 12px;
+      border-bottom-color: var(--accent2);
+      border-left-color: var(--accent2);
+      animation: loadRingSpinRev 1.8s linear infinite;
+    }
+
+    .load-orb .book {
+      font-size: 2.1rem;
+      animation: loadBookBounce 1.6s ease-in-out infinite;
+      filter: drop-shadow(0 4px 10px #00000066);
+    }
+
+    .load-dots span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin: 0 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: loadDotPulse 1.3s ease-in-out infinite;
+    }
+
+    .load-dots span:nth-child(2) {
+      animation-delay: .15s;
+      background: var(--accent2);
+    }
+
+    .load-dots span:nth-child(3) {
+      animation-delay: .3s;
+      background: var(--gold);
+    }
   </style>
 </head>
 
@@ -2688,12 +2799,20 @@
 
   <!-- ══ LOADING SCREEN (purana home page flash hone se rokta hai) ══ -->
   <div class="screen active" id="screenLoading" style="z-index:2000;">
-    <div style="min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-      <span class="spinner"
-        style="width:42px;height:42px;border-width:4px;border-top-color:var(--accent);border-color:var(--border);margin-bottom:16px;"></span>
+    <div style="min-height:75vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div class="load-orb">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="book">📚</div>
+      </div>
       <div
-        style="font-family:'Rajdhani',sans-serif;font-size:1rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;">
-        Loading...</div>
+        style="font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;">
+        UPSC MCQ Practice</div>
+      <div class="load-dots" style="margin-bottom:6px;">
+        <span></span><span></span><span></span>
+      </div>
+      <div style="font-family:'Rajdhani',sans-serif;font-size:0.82rem;color:var(--muted);letter-spacing:1px;">तैयारी हो
+        रही है, कृपया प्रतीक्षा करें...</div>
     </div>
   </div>
 
@@ -3242,7 +3361,7 @@
     }
 
     const questions = [
-      
+
     ];
 
     // ✅ Yaad rakhta hai ki HTML me pehle se MCQs the ya nahi (Mode 1 vs Mode 2)
@@ -3641,12 +3760,27 @@
       });
     }
 
+    // ✅ Emojis ko \u{...} unicode escape se likha hai — direct emoji characters kabhi-kabhi
+    // copy-paste / encoding ke dauraan corrupt hokar "�" ban jaate hain. Escape sequence
+    // guarantee karta hai ki sahi codepoint hi bane, WhatsApp par bhi sahi dikhega.
+    const EMO_BOOKS = String.fromCodePoint(0x1F4DA);   // 📚
+    const EMO_CLOCK = String.fromCodePoint(0x23F1, 0xFE0F); // ⏱️
+    const EMO_MEMO = String.fromCodePoint(0x1F4DD);    // 📝
+    const EMO_GLOBE = String.fromCodePoint(0x1F310);   // 🌐
+    const EMO_LINK = String.fromCodePoint(0x1F517);    // 🔗
+    const EMO_CHAT = String.fromCodePoint(0x1F4AC);    // 💬
+
     function buildWhatsAppShareText(t) {
       const url = window.location.origin + window.location.pathname + "?test=" + encodeURIComponent(t.id);
       const totalQ = (t.questions || []).length;
       const timeSec = Math.round((totalQ / TOTAL_Q_REF) * TOTAL_TIME);
       const mins = Math.max(1, Math.round(timeSec / 60));
-      return `📚 *${t.title}*\n\n⏱ Time: ${mins} min\n📝 Total MCQs: ${totalQ}\n🌐 Language: Hindi / English\n\n🔗 Test Link:\n${url}\n\n💬 Join Group:\n${WHATSAPP_JOIN_LINK}`;
+      return `${EMO_BOOKS} *${t.title}*\n\n`
+        + `${EMO_CLOCK} Time: ${mins} min\n`
+        + `${EMO_MEMO} Total MCQs: ${totalQ}\n`
+        + `${EMO_GLOBE} Language: Hindi / English\n\n`
+        + `${EMO_LINK} Test Link:\n${url}\n\n`
+        + `${EMO_CHAT} Join Group:\n${WHATSAPP_JOIN_LINK}`;
     }
 
     function shareTestOnWhatsApp(id) {
@@ -3818,7 +3952,7 @@
       }
     }
 
-  async function openAllTestJsonList() {
+    async function openAllTestJsonList() {
       await fetchAllTestsJSON();
       testListPath = [];
       await renderTestListScreen();
