@@ -3787,7 +3787,10 @@
       const t = allTestsData.find(x => String(x.id) === String(id));
       if (!t) return;
       const msg = encodeURIComponent(buildWhatsAppShareText(t));
-      window.open(`https://wa.me/?text=${msg}`, "_blank");
+      // ✅ "wa.me" short-link service kabhi-kabhi emoji/UTF-8 text galat decode kar deta hai
+      // (isiliye "�" dikhta tha). "api.whatsapp.com/send" WhatsApp ka official endpoint hai
+      // aur text ko bina corrupt kiye seedha bhej deta hai.
+      window.open(`https://api.whatsapp.com/send?text=${msg}`, "_blank");
     }
 
     function loadTestIntoQuestions(test) {
