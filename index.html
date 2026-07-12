@@ -3289,7 +3289,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyO4cKJ9Gj61tGpf5IT9R4ZuHiERZiEwD4vB3Fu8Zve368pGd4F6SQFMrVW3Giqf4RMoA/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby60ZZLLmd1_VE2yNirek_0evj21kx7JhWNQcbkXJriCAbjNRLN7wgTRMA6ozZvEMJz/exec";
     const TEST_NAME = "6th His 1st chapter";
 
     // ════ MULTI-TEST JSON CONFIG ════
@@ -3307,10 +3307,11 @@
     // ✅ Yaha jitne bhi ALAG GitHub repos hain jinke andar sirf JSON files rakhi
     // hain (jaise "StudyUPSC/TEST_JSON"), unhe yaha list me daal do.
     // branch khali chhod do to yeh khud repo ka default branch (main/master) dhoond lega.
-    // ✅ Ab repos EXTERNAL_JSON_REPOS me hardcode nahi hain — Google Sheet ke
-    // "Repo" tab se aate hain (owner | repo | branch columns), aur GitHub calls
-    // Apps Script backend ke through hoti hain — isse private repos bhi chal
-    // jaate hain aur koi secret token frontend me kabhi nahi aata.
+    const EXTERNAL_JSON_REPOS = [
+      { owner: "StudyUPSC", repo: "TEST_JSON", branch: "" }
+      // ✅ Agar aage koi aur JSON-only repo banao to yaha ek aur line add kar dena:
+      // { owner: "AnotherUser", repo: "AnotherRepo", branch: "" }
+    ];
 
     const CORRECT_M = 2;
     const WRONG_M = -(2 / 3);
@@ -3369,6 +3370,8 @@
     // ════ STATE ════
     let student = null, currentQ = 0, lang = 'hi';
     let allTestsData = [];       // tests.json se load hue sabhi tests
+    let testUidCounter = 0;      // ✅ har test object ko ek unique internal number deta hai —
+    // isse duplicate "id" wale tests bhi ek-dusre se sahi tarike se pehchane jaate hain
     let testListPath = [];       // ✅ current folder path (jaise ["Geo","Sub"])
     let testListSearchQuery = ""; // ✅ search box ka current text
     let testListSortMode = "name"; // name | latest | oldest
@@ -3540,9 +3543,9 @@
       const sharedTestId = urlParams.get("test");
       if (sharedTestId) {
         await fetchAllTestsJSON();
-        const found = allTestsData.find(t => String(t.id) === sharedTestId);
-        if (found) {
-          loadTestIntoQuestions(found);
+        const matches = allTestsData.filter(t => String(t.id) === sharedTestId);
+        if (matches.length === 1) {
+          loadTestIntoQuestions(matches[0]);
           rebuildPreview();
           renderPdfLinkButtons();
           document.getElementById("previewQCount").textContent = questions.length;
@@ -3550,6 +3553,14 @@
           updateFabRegisterVisibility();
           createAllTestFab();
           return; // ✅ seedha specific test khul gaya, aage kuch nahi karna
+        } else if (matches.length > 1) {
+          // ✅ Same ID ki 2+ tests mil gayi — chooser dikhao, student jo start karna
+          // chahta hai wahi Play Test se choose kar le
+          renderDuplicateChooser(matches);
+          showScreen("screenTestList");
+          updateFabRegisterVisibility();
+          createAllTestFab();
+          return;
         }
       }
 
@@ -3617,26 +3628,47 @@
       if (!e.target.closest("#allTestFab") && !e.target.closest("#allTestMenu")) closeAllTestMenu();
     });
 
-    // ✅ Ab GitHub ko Apps Script backend ke through call karte hain (api() function
-    // se) — isliye private repos bhi kaam karte hain aur token kahin frontend me
-    // nahi aata. Tree listing 6 ghante cache hoti hai backend me, isliye 50k-100k
-    // questions waali repos bhi baar-baar full scan nahi karti.
-    async function fetchJsonFilesFromRepoViaProxy(owner, repo, branch) {
+    // ════ MULTI-TEST JSON HELPERS ════
+    // ✅ Ek repo (owner/repo) ke ANDAR — root + har subfolder me — jitni bhi .json
+    // files hain, sabko recursive tree API se dhoondta hai, fetch karta hai, aur
+    // andar mile valid "tests" ko ek list me nikaal kar deta hai.
+    async function fetchJsonFilesFromRepo(owner, repo, branch) {
       let merged = [];
       try {
-        const listRes = await api({ action: "listJsonFiles", owner, repo, branch: branch || "" });
-        if (!listRes.ok) {
-          console.log(`listJsonFiles fail: ${owner}/${repo}`, listRes.error);
+        // Branch naam nahi diya? to repo ka default branch pata karo (main/master/kuch bhi)
+        let br = branch;
+        if (!br) {
+          try {
+            const infoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, { cache: "no-store" });
+            if (infoRes.ok) {
+              const info = await infoRes.json();
+              br = info.default_branch || "main";
+            } else {
+              br = "main";
+            }
+          } catch (e) { br = "main"; }
+        }
+
+        // ✅ Recursive tree API — isse root ke saath saath HAR subfolder ke andar
+        // ki files bhi ek hi call me mil jaati hain
+        const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${br}?recursive=1`;
+        const treeRes = await fetch(treeUrl, { cache: "no-store" });
+        if (!treeRes.ok) {
+          console.log(`Tree API fail: ${owner}/${repo}`, treeRes.status);
           return merged;
         }
-        const br = listRes.branch || branch || "main";
-        const jsonPaths = listRes.paths || [];
+        const treeData = await treeRes.json();
+        const jsonPaths = Array.isArray(treeData.tree)
+          ? treeData.tree.filter(item => item.type === "blob" && item.path.toLowerCase().endsWith(".json")).map(item => item.path)
+          : [];
 
+        // ✅ Har mili hui .json file ko raw.githubusercontent.com se fetch karo
         for (const path of jsonPaths) {
           try {
-            const fileRes = await api({ action: "getJsonFile", owner, repo, branch: br, path });
-            if (!fileRes.ok) { console.log("getJsonFile fail:", path, fileRes.error); continue; }
-            const data = JSON.parse(fileRes.content);
+            const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${br}/${path}`;
+            const r = await fetch(rawUrl, { cache: "no-store" });
+            if (!r.ok) continue;
+            const data = await r.json();
 
             // File ek array ho sakti hai [ {...}, {...} ] ya { tests: [...] } ya seedha ek test object
             const arr = Array.isArray(data) ? data : (Array.isArray(data.tests) ? data.tests : [data]);
@@ -3644,14 +3676,19 @@
             arr.forEach((t, idx) => {
               if (!t || !t.questions) return; // jo entries valid test nahi hain unhe skip karo
               if (!t.id) {
+                // id na ho to path + index se auto bana do (folder/sub/name.json -> folder_sub_name_0)
                 t.id = path.replace(/\.json$/i, "").replace(/[\/\\]+/g, "_") + "_" + idx;
               }
+              // ✅ Is file ka folder path save karo (jaise "Geo" ya "Geo/Sub" ya "" root ke liye)
               t._folderPath = path.includes('/') ? path.substring(0, path.lastIndexOf('/')) : "";
+              // ✅ Sort-by-date ke liye repo details bhi save kar lo (lazy commit-date fetch ke liye)
               t._owner = owner; t._repo = repo; t._branch = br; t._path = path;
+              // ✅ Unique internal id — chahe JSON ke andar "id" duplicate ho, yeh hamesha alag rahega
+              t._uid = testUidCounter++;
               merged.push(t);
             });
           } catch (e) {
-            console.log("File parse nahi hui:", path, e);
+            console.log("File load nahi hui:", path, e);
           }
         }
       } catch (e) {
@@ -3659,25 +3696,23 @@
       }
       return merged;
     }
-
     async function fetchAllTestsJSON() {
       if (allTestsData.length) return allTestsData; // ek baar load ho gaya to dobara mat karo
 
       let merged = [];
 
-      // ✅ Repo list ab Google Sheet ke "Repo" tab se aati hai (owner | repo | branch)
-      const repoListRes = await api({ action: "getRepoList" });
-      let repoList = (repoListRes.ok && repoListRes.repos) ? repoListRes.repos : [];
-
-      // Fallback: agar Sheet khaali hai to khud ki hosting repo bhi try kar lo
-      if (repoList.length === 0) {
-        const { owner, repo } = getRepoInfoFromLocation();
-        if (owner && repo) repoList = [{ owner, repo, branch: "" }];
+      // ✅ Step A: Apni khud ki repo (jaha HTML hai) — root + sabhi subfolders scan karo
+      const { owner, repo } = getRepoInfoFromLocation();
+      if (owner && repo) {
+        const ownTests = await fetchJsonFilesFromRepo(owner, repo);
+        merged = merged.concat(ownTests);
       }
 
-      for (const r of repoList) {
-        const tests = await fetchJsonFilesFromRepoViaProxy(r.owner, r.repo, r.branch);
-        merged = merged.concat(tests);
+      // ✅ Step B: Upar EXTERNAL_JSON_REPOS me jitni bhi alag repos di hain, unhe bhi scan karo
+      for (const ext of EXTERNAL_JSON_REPOS) {
+        if (!ext.owner || !ext.repo) continue;
+        const extTests = await fetchJsonFilesFromRepo(ext.owner, ext.repo, ext.branch);
+        merged = merged.concat(extTests);
       }
 
       allTestsData = merged;
@@ -3689,10 +3724,14 @@
     async function fetchTestAddedDate(t) {
       if (t._addedAt !== undefined) return t._addedAt;
       try {
-        const r = await api({ action: "getFileCommitDate", owner: t._owner, repo: t._repo, path: t._path });
-        if (r.ok && r.date) {
-          t._addedAt = new Date(r.date).getTime();
-          return t._addedAt;
+        const url = `https://api.github.com/repos/${t._owner}/${t._repo}/commits?path=${encodeURIComponent(t._path)}&per_page=1`;
+        const r = await fetch(url, { cache: "no-store" });
+        if (r.ok) {
+          const data = await r.json();
+          if (Array.isArray(data) && data[0]?.commit?.author?.date) {
+            t._addedAt = new Date(data[0].commit.author.date).getTime();
+            return t._addedAt;
+          }
         }
       } catch (e) { /* ignore */ }
       t._addedAt = 0;
@@ -3766,6 +3805,11 @@
       window.open(`https://api.whatsapp.com/send?text=${msg}`, "_blank");
     }
 
+    // ✅ Duplicate "id" wale tests ko bhi sahi se pehchanta hai (id ke bajaye unique _uid se dhoondta hai)
+    function getTestByUid(uid) {
+      return allTestsData.find(t => t._uid === uid);
+    }
+
     function loadTestIntoQuestions(test) {
       questions.length = 0;
       (test.questions || []).forEach(q => questions.push(q));
@@ -3801,6 +3845,30 @@
     function navigateToFolder(pathArr) {
       testListPath = pathArr;
       renderTestListScreen();
+    }
+
+    // ✅ Jab share-link (?test=ID) se aane par same ID ki multiple tests mil jaayein,
+    // to sabko ek list me dikhao taaki student khud chun sake ki kaunsi test khelni hai
+    function renderDuplicateChooser(matches) {
+      const wrap = document.getElementById("testListWrap");
+      if (!wrap) return;
+      wrap.innerHTML = `<div style="text-align:center;color:var(--accent);padding:14px 16px;background:var(--card);border:1px solid var(--accent);border-radius:12px;margin-bottom:16px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.85rem;">⚠ Is Test ID ke ${matches.length} tests मिले — जो शुरू करनी है वो चुनें</div>`;
+      matches.forEach(t => {
+        const card = document.createElement("div");
+        card.className = "preview-q-card";
+        card.style.cssText = "cursor:default;opacity:1;";
+        card.innerHTML = `
+          <div class="preview-q-header">
+            <span class="preview-q-num">📘 ${(t.questions || []).length} Q</span>
+            <span style="margin-left:auto;font-size:0.68rem;color:var(--muted);">📂 ${t._folderPath || 'Home'}${t._repo ? ' — ' + t._repo : ''}</span>
+          </div>
+          <div class="preview-q-text" style="font-weight:700;color:var(--gold);">${t.title}</div>
+          <div style="padding:0 18px 14px;">
+            <button onclick="openTestFromList(getTestByUid(${t._uid}))" style="background:var(--accent);color:#0f1117;border:none;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;font-family:'Rajdhani',sans-serif;letter-spacing:1px;">▶ Play Test</button>
+          </div>
+        `;
+        wrap.appendChild(card);
+      });
     }
 
     async function renderTestListScreen() {
@@ -3886,6 +3954,7 @@
       // ✅ Fir Tests (files) dikhao — NEW tag, Play button, Copy Link, WhatsApp share
       filesHere.forEach(t => {
         const isNew = !seenTestIdsSet.has(String(t.id));
+        const dupCount = allTestsData.filter(x => String(x.id) === String(t.id)).length;
         const card = document.createElement("div");
         card.className = "preview-q-card";
         card.style.cssText = "cursor:default;opacity:1;";
@@ -3893,15 +3962,16 @@
           <div class="preview-q-header">
             <span class="preview-q-num">📘 ${(t.questions || []).length} Q</span>
             ${isNew ? '<span style="background:#ef4444;color:#fff;font-size:0.65rem;padding:2px 9px;border-radius:10px;font-family:Rajdhani,sans-serif;font-weight:700;letter-spacing:1px;">🆕 NEW</span>' : ''}
+            ${dupCount > 1 ? '<span style="background:#f59e0b;color:#0f1117;font-size:0.65rem;padding:2px 9px;border-radius:10px;font-family:Rajdhani,sans-serif;font-weight:700;letter-spacing:1px;">⚠ DUPLICATE ID</span>' : ''}
             ${query ? `<span style="font-size:0.68rem;color:var(--muted);">📂 ${t._folderPath || 'Home'}</span>` : ''}
             <div style="margin-left:auto;display:flex;gap:12px;align-items:center;">
               <span title="Copy Link" style="font-size:0.95rem;color:var(--accent2);cursor:pointer;" onclick="event.stopPropagation();shareTestLink('${t.id}')">📋</span>
               <span title="Share on WhatsApp" style="font-size:0.95rem;color:#25D366;cursor:pointer;" onclick="event.stopPropagation();shareTestOnWhatsApp('${t.id}')">💬</span>
             </div>
           </div>
-          <div class="preview-q-text" style="font-weight:700;color:var(--gold);cursor:pointer;" onclick="openTestFromList(allTestsData.find(x=>String(x.id)==='${t.id}'))">${t.title}</div>
+          <div class="preview-q-text" style="font-weight:700;color:var(--gold);cursor:pointer;" onclick="openTestFromList(getTestByUid(${t._uid}))">${t.title}</div>
           <div style="padding:0 18px 14px;">
-            <button onclick="event.stopPropagation();openTestFromList(allTestsData.find(x=>String(x.id)==='${t.id}'))" style="background:var(--accent);color:#0f1117;border:none;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;font-family:'Rajdhani',sans-serif;letter-spacing:1px;">▶ Play Test</button>
+            <button onclick="event.stopPropagation();openTestFromList(getTestByUid(${t._uid}))" style="background:var(--accent);color:#0f1117;border:none;border-radius:10px;padding:9px 20px;font-weight:700;font-size:0.82rem;cursor:pointer;font-family:'Rajdhani',sans-serif;letter-spacing:1px;">▶ Play Test</button>
           </div>
         `;
         wrap.appendChild(card);
