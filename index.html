@@ -1456,14 +1456,32 @@
       window.scrollTo(0, 0);
     }
 
-    function renderMoreQRoot() {
-      document.getElementById('moreQCrumb').textContent = '📂 Sources';
+   async function renderMoreQRoot() {
+      document.getElementById('moreQCrumb').textContent = '📂 More Questions';
       const box = document.getElementById('moreQBody');
+      box.innerHTML = '<div class="mq-loading">Loading...</div>';
+
       let html = '';
-      JSON_REPOS.forEach(r => {
-        html += `<div class="mq-folder" onclick="enterRepoFolder('${r.key}','')">📁 ${r.name}</div>`;
-      });
-      box.innerHTML = html;
+      for (const repo of JSON_REPOS) {
+        try {
+          const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/contents/?ref=${repo.branch}`;
+          const res = await fetch(url);
+          const items = await res.json();
+          if (!Array.isArray(items)) continue;
+
+          const folders = items.filter(i => i.type === 'dir');
+          const files = items.filter(i => i.type === 'file' && i.name.toLowerCase().endsWith('.json'));
+
+          folders.forEach(f => {
+            html += `<div class="mq-folder" onclick="enterRepoFolder('${repo.key}','${f.path}')">📁 ${f.name}</div>`;
+          });
+          files.forEach(f => {
+            html += `<div class="mq-file" onclick="openJsonFile('${repo.key}','${f.path}')">📄 ${f.name}</div>`;
+          });
+        } catch (e) { }
+      }
+
+      box.innerHTML = html || '<div class="mq-empty">Kuch nahi mila</div>';
     }
 
     async function enterRepoFolder(repoKey, path) {
@@ -1482,8 +1500,8 @@
         if (path !== '') {
           const parentPath = path.split('/').slice(0, -1).join('/');
           html += `<div class="mq-folder mq-back" onclick="enterRepoFolder('${repoKey}','${parentPath}')">⬅ Back</div>`;
-        } else {
-          html += `<div class="mq-folder mq-back" onclick="renderMoreQRoot()">⬅ Back to Sources</div>`;
+      } else {
+          html += `<div class="mq-folder mq-back" onclick="renderMoreQRoot()">⬅ Back</div>`;
         }
 
         const folders = items.filter(i => i.type === 'dir');
