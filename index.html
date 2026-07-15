@@ -842,14 +842,15 @@
     </div>
   </div>
 
-  <!-- ======= MODAL: MORE QUESTIONS (GitHub JSON Browser) ======= -->
-  <div class="modal-overlay" id="moreQModal">
-    <div class="modal-box" style="max-width:600px;width:92%;max-height:85vh;overflow-y:auto">
-      <button class="modal-close-btn" onclick="closeModal('moreQModal')">✕</button>
-      <div class="modal-title">📂 More Questions</div>
-      <div id="moreQCrumb" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
-      <div id="moreQBody"></div>
+  <!-- MORE QUESTIONS — ab ye bhi main quiz page jaisa hi full-page dikhega, popup nahi -->
+  <div class="main-wrap" id="moreQWrap" style="display:none">
+    <div class="topic-name"
+      style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <span id="moreQCrumb">📂 Sources</span>
+      <button class="btn-secondary" id="moreQCloseBtn" style="width:auto;padding:8px 16px;margin:0;white-space:nowrap"
+        onclick="closeMoreQuestions()">✕ Close</button>
     </div>
+    <div id="moreQBody"></div>
   </div>
 
   <script>
@@ -1437,8 +1438,22 @@
     // MORE QUESTIONS — GitHub JSON folder browser
     // ============================================================
     function openMoreQuestions() {
-      openModal('moreQModal');
+      document.getElementById('mainWrap').style.display = 'none';
+      document.getElementById('fab').style.display = 'none';
+      document.getElementById('moreQFab').style.display = 'none';
+      document.getElementById('moreQWrap').style.display = 'block';
+      window.scrollTo(0, 0);
       renderMoreQRoot();
+    }
+
+    function closeMoreQuestions() {
+      document.getElementById('moreQWrap').style.display = 'none';
+      if (questionsData.length > 0) {
+        document.getElementById('mainWrap').style.display = 'block';
+        document.getElementById('moreQFab').style.display = 'flex';
+        setupFAB();
+      }
+      window.scrollTo(0, 0);
     }
 
     function renderMoreQRoot() {
@@ -1511,7 +1526,7 @@
       let html = `<div class="mq-folder mq-back" onclick="enterRepoFolder('${repoKey}','${parentPath}')">⬅ Back</div>`;
       let idx = 0;
       subjects.forEach(sub => {
-        html += `<div class="subject-hd" style="border-radius:10px;margin-top:10px">${sub.subject}<div class="subject-src">📖 ${sub.source || ''}</div></div>`;
+        html += `<div class="subject-block"><div class="subject-hd">${sub.subject}<div class="subject-src">📖 ${sub.source || ''}</div></div>`;
         (sub.topics || []).forEach(topic => {
           html += `<div class="topic-block"><div class="topic-name">📌 ${topic.topicName}</div>`;
           (topic.questions || []).forEach(q => {
@@ -1539,6 +1554,7 @@
           });
           html += `</div>`;
         });
+        html += `</div>`;
       });
       box.innerHTML = html;
 
@@ -1673,11 +1689,9 @@
     // ============================================================
     // INIT
     // ============================================================
-    if (questionsData.length === 0) {
-      // Local questions na ho to seedha "More Questions" wala page khul jaye
-      document.getElementById('mainWrap').style.display = 'none';
-      document.getElementById('fab').style.display = 'none';
-      document.getElementById('moreQFab').style.display = 'none';
+if (questionsData.length === 0) {
+      // Local questions na ho to seedha "More Questions" wala page khul jaye — Close button ki zarurat nahi
+      document.getElementById('moreQCloseBtn').style.display = 'none';
       openMoreQuestions();
     } else {
       renderQuestions();
