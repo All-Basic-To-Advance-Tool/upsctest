@@ -699,24 +699,46 @@
     /* MORE QUESTIONS — GitHub folder/file browser */
     .mq-folder,
     .mq-file {
-      padding: 12px 14px;
-      border: 1.5px solid #e5e7eb;
-      border-radius: 10px;
-      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border: none;
+      border-radius: 14px;
+      margin-bottom: 10px;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: background .15s;
+      font-size: 14.5px;
+      font-weight: 700;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(79, 70, 229, .08);
+      transition: transform .15s, box-shadow .15s;
     }
 
     .mq-folder:hover,
     .mq-file:hover {
-      background: #f0f4ff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(79, 70, 229, .18);
+    }
+
+    .mq-folder {
+      color: var(--primary-dark);
+      border-left: 4px solid var(--accent);
+    }
+
+    .mq-file {
+      color: var(--text);
+      border-left: 4px solid var(--primary);
     }
 
     .mq-back {
-      color: var(--primary);
-      font-weight: 700;
+      color: #fff;
+      background: var(--primary);
+      border-left: none;
+      justify-content: center;
+    }
+
+    .mq-back:hover {
+      background: var(--primary-dark);
     }
 
     .mq-loading,
@@ -726,7 +748,23 @@
       padding: 20px;
       font-size: 14px;
     }
-  </style>
+
+    /* QUESTION META — marks / word limit / time badges */
+    .q-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .q-meta-pill {
+      background: #eef2ff;
+      color: var(--primary-dark);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
   </style>
 </head>
 
@@ -846,9 +884,16 @@
   <div class="main-wrap" id="moreQWrap" style="display:none">
     <div class="topic-name"
       style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
-      <span id="moreQCrumb">📂 Sources</span>
+      <span id="moreQCrumb">📂 More Questions</span>
       <button class="btn-secondary" id="moreQCloseBtn" style="width:auto;padding:8px 16px;margin:0;white-space:nowrap"
         onclick="closeMoreQuestions()">✕ Close</button>
+    </div>
+    <!-- Local questions na ho to poori site ka link share karne ka option -->
+    <div id="homeShareArea" style="display:none;margin-bottom:16px">
+      <div class="q-actions">
+        <button class="demo-btn" onclick="shareHomePage()">📤 Share This Site</button>
+        <button class="demo-btn" onclick="copyHomeLink()">🔗 Copy Site Link</button>
+      </div>
     </div>
     <div id="moreQBody"></div>
   </div>
@@ -1168,7 +1213,197 @@
     // QUESTIONS DATA
     // ============================================================
     const questionsData = [
-      
+      {
+        subject: "History",
+        source: "Old NCERT / Standard Book",
+        topics: [
+          {
+            topicName: "Pashan Kaal",
+            questions: [
+              {
+                question: "भारतीय उपमहाद्वीप में पाषाण कालीन संस्कृति के विकास का विश्लेषण कीजिए।",
+                answer: `
+<h4>प्रस्तावना</h4>
+<p>पाषाण काल मानव इतिहास का सबसे प्राचीन काल है, जिसमें मानव ने मुख्यतः पत्थरों के उपकरणों का उपयोग किया। भारतीय उपमहाद्वीप में पाषाण काल का विकास पुरापाषाण, मध्यपाषाण और नवपाषाण चरणों के माध्यम से हुआ।</p>
+
+<h4>मुख्य भाग</h4>
+
+<b>पाषाण कालीन संस्कृति के विकास के चरण</b>
+
+<ul>
+<li><b>पुरापाषाण काल</b> - शिकार एवं खाद्य संग्रह पर आधारित जीवन, हाथ-कुल्हाड़ी एवं चॉपर जैसे उपकरणों का उपयोग।</li>
+
+<li><b>मध्यपाषाण काल</b> - सूक्ष्म पत्थर उपकरण (Microliths) का विकास, पशुपालन एवं स्थायी निवास की शुरुआत।</li>
+
+<li><b>नवपाषाण काल</b> - कृषि, पशुपालन, स्थायी बस्तियाँ, पहिये तथा मिट्टी के बर्तनों का विकास।</li>
+</ul>
+
+<b>महत्व</b>
+
+<ul>
+<li>भोजन उत्पादन की शुरुआत हुई।</li>
+<li>सामाजिक संगठन विकसित हुआ।</li>
+<li>तकनीकी प्रगति को बढ़ावा मिला।</li>
+<li>सभ्यता के विकास की नींव पड़ी।</li>
+</ul>
+
+<h4>निष्कर्ष</h4>
+<p>भारतीय उपमहाद्वीप में पाषाण कालीन संस्कृति का विकास मानव सभ्यता के क्रमिक विकास का आधार बना तथा आगे की सभ्यताओं के उदय का मार्ग प्रशस्त किया।</p>
+`
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        subject: "History",
+        source: "Old NCERT / Standard Book",
+        topics: [
+          {
+            topicName: "Pashan Kaal",
+            questions: [
+              {
+                question: "पुरापाषाण काल (Palaeolithic Age) की प्रमुख विशेषताओं तथा मानव जीवन पर उसके प्रभाव का वर्णन कीजिए।",
+                answer: `
+<h4>प्रस्तावना</h4>
+<p>पुरापाषाण काल पाषाण युग का प्रारम्भिक एवं सबसे लंबा चरण था। इस काल में मानव ने सर्वप्रथम पत्थर के उपकरणों का निर्माण एवं उपयोग किया। यह मानव सभ्यता के विकास की आधारभूत अवस्था थी।</p>
+
+<h4>मुख्य भाग</h4>
+
+<b>पुरापाषाण काल की प्रमुख विशेषताएँ</b>
+
+<ul>
+<li>जीवन निर्वाह का आधार शिकार एवं खाद्य संग्रह था।</li>
+
+<li>मानव घुमंतू जीवन व्यतीत करता था तथा स्थायी निवास नहीं थे।</li>
+
+<li>पत्थर के मोटे एवं अपरिष्कृत औजारों का उपयोग किया जाता था।</li>
+
+<li>मानव गुफाओं एवं शैलाश्रयों में निवास करता था।</li>
+
+<li>अग्नि की खोज एवं उपयोग ने जीवन में महत्वपूर्ण परिवर्तन लाया।</li>
+
+<li>छोटे-छोटे समूहों में रहने की प्रवृत्ति विकसित हुई।</li>
+
+<li>प्रकृति पर पूर्ण निर्भरता थी।</li>
+</ul>
+
+<b>मानव जीवन पर प्रभाव</b>
+
+<ul>
+<li><b>आर्थिक प्रभाव:</b> शिकार एवं संग्रह आधारित अर्थव्यवस्था का विकास हुआ।</li>
+
+<li><b>सामाजिक प्रभाव:</b> सामूहिक जीवन एवं सहयोग की भावना विकसित हुई।</li>
+
+<li><b>तकनीकी प्रभाव:</b> पत्थर के औजारों के निर्माण तथा अग्नि के उपयोग की तकनीक विकसित हुई।</li>
+
+<li><b>सांस्कृतिक प्रभाव:</b> शैलचित्रों एवं प्रारम्भिक कलात्मक अभिव्यक्तियों का विकास हुआ।</li>
+</ul>
+
+<h4>निष्कर्ष</h4>
+<p>पुरापाषाण काल मानव विकास की आधारशिला था। इस काल में विकसित तकनीकी, सामाजिक एवं सांस्कृतिक विशेषताओं ने आगे के मध्यपाषाण एवं नवपाषाण काल के विकास का मार्ग प्रशस्त किया।</p>
+`
+              }
+            ]
+          }
+        ]
+      },
+
+      {
+        subject: "History",
+        source: "Old NCERT / Standard Book",
+        topics: [
+          {
+            topicName: "Pashan Kaal",
+            questions: [
+              {
+                question: "भारत में पुरापाषाण, मध्यपाषाण तथा नवपाषाण काल की प्रमुख विशेषताओं की तुलनात्मक समीक्षा कीजिए।",
+                answer: `
+<h4>प्रस्तावना</h4>
+<p>पाषाण काल मानव इतिहास का प्रारम्भिक चरण था, जिसमें मानव जीवन क्रमशः शिकार एवं संग्रह से कृषि एवं स्थायी निवास की ओर विकसित हुआ। भारत में पाषाण काल को मुख्यतः पुरापाषाण, मध्यपाषाण तथा नवपाषाण काल में विभाजित किया जाता है।</p>
+
+<h4>मुख्य भाग</h4>
+
+<b>पुरापाषाण, मध्यपाषाण तथा नवपाषाण काल की तुलनात्मक समीक्षा</b>
+
+<ul>
+<li><b>जीवन शैली:</b> पुरापाषाण काल में मानव पूर्णतः घुमंतू था, मध्यपाषाण काल में अर्ध-स्थायी जीवन प्रारम्भ हुआ, जबकि नवपाषाण काल में स्थायी बस्तियाँ विकसित हुईं।</li>
+
+<li><b>आर्थिक गतिविधियाँ:</b> पुरापाषाण काल में शिकार एवं खाद्य संग्रह प्रमुख था, मध्यपाषाण काल में पशुपालन एवं मछली पकड़ने की शुरुआत हुई, जबकि नवपाषाण काल में कृषि एवं पशुपालन अर्थव्यवस्था का आधार बने।</li>
+
+<li><b>औजार:</b> पुरापाषाण काल में बड़े एवं अपरिष्कृत पत्थर के औजार प्रयुक्त होते थे, मध्यपाषाण काल में सूक्ष्म पाषाण उपकरण (Microliths) विकसित हुए तथा नवपाषाण काल में घिसे एवं पॉलिश किए हुए पत्थर के औजारों का प्रयोग हुआ।</li>
+
+<li><b>आवास:</b> पुरापाषाण मानव गुफाओं एवं शैलाश्रयों में रहता था, मध्यपाषाण काल में अस्थायी झोपड़ियों का निर्माण प्रारम्भ हुआ, जबकि नवपाषाण काल में स्थायी घर एवं ग्राम बसने लगे।</li>
+
+<li><b>सामाजिक जीवन:</b> पुरापाषाण काल में छोटे समूह थे, मध्यपाषाण काल में सामुदायिक सहयोग बढ़ा तथा नवपाषाण काल में संगठित सामाजिक संरचना विकसित हुई।</li>
+
+<li><b>तकनीकी विकास:</b> पुरापाषाण काल में अग्नि का उपयोग प्रारम्भ हुआ, मध्यपाषाण काल में धनुष-बाण का उपयोग बढ़ा तथा नवपाषाण काल में पहिया, मिट्टी के बर्तन एवं कृषि तकनीकों का विकास हुआ।</li>
+
+<li><b>प्रमुख स्थल:</b> पुरापाषाण काल के भीमबेटका एवं सोहन घाटी, मध्यपाषाण काल के बागोर एवं लंघनाज तथा नवपाषाण काल के मेहरगढ़, बुर्जहोम एवं कोलडिहवा प्रमुख स्थल हैं।</li>
+</ul>
+
+<h4>निष्कर्ष</h4>
+<p>पुरापाषाण से नवपाषाण काल तक मानव जीवन में निरंतर प्रगति हुई। शिकार एवं संग्रह आधारित जीवन से कृषि, पशुपालन एवं स्थायी सभ्यता की ओर यह परिवर्तन मानव इतिहास की सबसे महत्वपूर्ण उपलब्धियों में से एक था।</p>
+`
+              }
+            ]
+          }
+        ]
+      },
+      {
+        subject: "History",
+        source: "Old NCERT / Standard Book",
+        topics: [
+          {
+            topicName: "Pashan Kaal",
+            questions: [
+              {
+                question: "भारतीय पाषाण कालीन शैलचित्र केवल कला नहीं, बल्कि सामाजिक दस्तावेज भी हैं। समालोचनात्मक विवेचना कीजिए।",
+                answer: `
+<h4>प्रस्तावना</h4>
+<p>भारतीय पाषाण कालीन शैलचित्र मानव सभ्यता की प्रारम्भिक सांस्कृतिक अभिव्यक्तियों के महत्वपूर्ण साक्ष्य हैं। भीमबेटका, कुप्पगल, एडक्कल तथा अन्य शैलाश्रयों में प्राप्त चित्र केवल सौंदर्यबोध का प्रदर्शन नहीं करते, बल्कि तत्कालीन मानव के सामाजिक, आर्थिक, धार्मिक एवं सांस्कृतिक जीवन का जीवंत चित्रण भी प्रस्तुत करते हैं। इसलिए इन्हें प्रागैतिहासिक समाज के "सामाजिक दस्तावेज" के रूप में देखा जाता है।</p>
+
+<h4>मुख्य भाग</h4>
+
+<b>शैलचित्र सामाजिक दस्तावेज के रूप में</b>
+
+<ul>
+<li><b>सामाजिक जीवन का चित्रण:</b> समूह में शिकार, सामूहिक नृत्य, उत्सव तथा दैनिक गतिविधियों के दृश्य सामुदायिक जीवन एवं सामाजिक संगठन की जानकारी देते हैं।</li>
+
+<li><b>आर्थिक गतिविधियों का प्रमाण:</b> शिकार, मछली पकड़ना, पशुपालन तथा खाद्य संग्रह से संबंधित चित्र तत्कालीन आजीविका के प्रमुख साधनों को प्रदर्शित करते हैं।</li>
+
+<li><b>मानव-पशु संबंध:</b> विभिन्न पशुओं के चित्र पर्यावरणीय परिस्थितियों, जैव विविधता तथा मानव-पशु संबंधों की जानकारी प्रदान करते हैं।</li>
+
+<li><b>धार्मिक एवं आध्यात्मिक संकेत:</b> कुछ प्रतीकात्मक चित्र, अनुष्ठानिक दृश्य तथा रहस्यमयी आकृतियाँ प्रारम्भिक धार्मिक विश्वासों एवं आध्यात्मिक चेतना का संकेत देती हैं।</li>
+
+<li><b>तकनीकी विकास का साक्ष्य:</b> हथियारों, धनुष-बाण तथा अन्य उपकरणों के चित्र तकनीकी प्रगति एवं कौशल को दर्शाते हैं।</li>
+
+<li><b>सांस्कृतिक अभिव्यक्ति:</b> नृत्य, संगीत तथा सामूहिक समारोहों के दृश्य सांस्कृतिक जीवन की समृद्धि को प्रतिबिंबित करते हैं।</li>
+
+<li><b>लैंगिक एवं सामुदायिक भूमिकाएँ:</b> विभिन्न मानव आकृतियाँ समाज में श्रम विभाजन एवं भूमिकाओं की झलक प्रस्तुत करती हैं।</li>
+</ul>
+
+<b>समालोचनात्मक दृष्टि</b>
+
+<ul>
+<li>शैलचित्रों की व्याख्या मुख्यतः अनुमान एवं प्रतीकात्मक विश्लेषण पर आधारित है, इसलिए सभी निष्कर्ष पूर्णतः निश्चित नहीं माने जा सकते।</li>
+
+<li>चित्रों में सम्पूर्ण समाज का प्रतिनिधित्व नहीं मिलता, बल्कि कलाकार की दृष्टि एवं चयन भी प्रभाव डालते हैं।</li>
+
+<li>कई चित्र समय के साथ क्षतिग्रस्त हो चुके हैं, जिससे उनकी सही व्याख्या कठिन हो जाती है।</li>
+
+<li>फिर भी, लिखित अभिलेखों के अभाव में ये प्रागैतिहासिक समाज को समझने का सबसे महत्वपूर्ण स्रोत बने हुए हैं।</li>
+</ul>
+
+<h4>निष्कर्ष</h4>
+<p>भारतीय पाषाण कालीन शैलचित्र कला, इतिहास, समाजशास्त्र एवं मानवशास्त्र का अद्वितीय संगम हैं। वे केवल कलात्मक अभिव्यक्ति नहीं, बल्कि तत्कालीन मानव जीवन, सामाजिक संरचना, आर्थिक गतिविधियों एवं सांस्कृतिक चेतना के विश्वसनीय दस्तावेज भी हैं। अतः इन्हें प्रागैतिहासिक भारत के सामाजिक इतिहास के अमूल्य स्रोत के रूप में देखा जाना चाहिए।</p>
+`
+              }
+            ]
+          }
+        ]
+      },
     ];
 
     // ============================================================
@@ -1190,13 +1425,14 @@
             const qid = `q${si}_${ti}_${qi}`;
             const locked = !isLoggedIn && globalIdx >= FREE_Q;
             const lockedCls = locked ? 'locked' : '';
-            const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
+           const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
             html += `
         <div class="q-item ${lockedCls}" id="item_${qid}">
           <div class="lock-overlay" onclick="onProtectedAction('seeAll')">
             <span class="lock-pill">🔒 See All Questions पर Click करें</span>
           </div>
           <div class="q-header">
+            ${buildQMetaHtml(q)}
             <div class="q-text"><strong>Q${globalIdx + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
           <div class="q-actions">
               <button class="demo-btn" onclick="onProtectedAction('demo','${qid}')">👁 See Demo Answer</button>
@@ -1266,37 +1502,81 @@
       window.scrollTo(0, 0);
     }
 
-   async function renderMoreQRoot() {
+    // JSON file ke andar se { id, subjects } nikalna — naya format { id, subjects:[...] }
+    // aur purana format (bare array ya single subject object) dono chalenge
+    function parseJsonFile(parsed) {
+      if (parsed && parsed.subjects) return { id: parsed.id || null, subjects: parsed.subjects };
+      if (Array.isArray(parsed)) return { id: null, subjects: parsed };
+      if (parsed && parsed.subject) return { id: null, subjects: [parsed] };
+      return { id: null, subjects: [] };
+    }
+
+    // File ka display name — JSON ke andar wala "id" use hoga, filename kabhi nahi dikhega
+    async function getJsonDisplayName(repo, filePath, fallbackName) {
+      try {
+        const rawUrl = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${repo.branch}/${filePath}`;
+        const res = await fetch(rawUrl);
+        const parsed = await res.json();
+        const { id } = parseJsonFile(parsed);
+        return id || fallbackName;
+      } catch (e) {
+        return fallbackName;
+      }
+    }
+
+    // Ek repo path ki folder/file listing HTML banana (dono repos me reuse hota hai)
+    async function buildFolderListHtml(repo, items, path) {
+      let html = '';
+      if (path !== '') {
+        const parentPath = path.split('/').slice(0, -1).join('/');
+        if (parentPath === '') {
+          html += `<div class="mq-folder mq-back" onclick="renderMoreQRoot()">⬅ Back</div>`;
+        } else {
+          html += `<div class="mq-folder mq-back" onclick="enterRepoFolder('${repo.key}','${parentPath}')">⬅ Back</div>`;
+        }
+      }
+
+      const folders = items.filter(i => i.type === 'dir');
+      const files = items.filter(i => i.type === 'file' && i.name.toLowerCase().endsWith('.json'));
+
+      folders.forEach(f => {
+        html += `<div class="mq-folder" onclick="enterRepoFolder('${repo.key}','${f.path}')">📁 ${f.name}</div>`;
+      });
+
+      const fileLabels = await Promise.all(files.map(f => getJsonDisplayName(repo, f.path, f.name)));
+      files.forEach((f, i) => {
+        html += `<div class="mq-file" onclick="openJsonFile('${repo.key}','${f.path}')">📄 ${fileLabels[i]}</div>`;
+      });
+
+      return { html, hasContent: folders.length > 0 || files.length > 0 };
+    }
+
+    // Root — dono repos ke top-level folders/files ek hi combined list me (repo ka naam khud folder ki tarah nahi dikhta)
+    async function renderMoreQRoot() {
       document.getElementById('moreQCrumb').textContent = '📂 More Questions';
       const box = document.getElementById('moreQBody');
       box.innerHTML = '<div class="mq-loading">Loading...</div>';
 
       let html = '';
+      let anyContent = false;
       for (const repo of JSON_REPOS) {
         try {
           const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/contents/?ref=${repo.branch}`;
           const res = await fetch(url);
           const items = await res.json();
           if (!Array.isArray(items)) continue;
-
-          const folders = items.filter(i => i.type === 'dir');
-          const files = items.filter(i => i.type === 'file' && i.name.toLowerCase().endsWith('.json'));
-
-          folders.forEach(f => {
-            html += `<div class="mq-folder" onclick="enterRepoFolder('${repo.key}','${f.path}')">📁 ${f.name}</div>`;
-          });
-          files.forEach(f => {
-            html += `<div class="mq-file" onclick="openJsonFile('${repo.key}','${f.path}')">📄 ${f.name}</div>`;
-          });
+          const result = await buildFolderListHtml(repo, items, '');
+          html += result.html;
+          if (result.hasContent) anyContent = true;
         } catch (e) { }
       }
 
-      box.innerHTML = html || '<div class="mq-empty">Kuch nahi mila</div>';
+      box.innerHTML = anyContent ? html : '<div class="mq-empty">Kuch nahi mila</div>';
     }
 
     async function enterRepoFolder(repoKey, path) {
       const repo = JSON_REPOS.find(r => r.key === repoKey);
-      document.getElementById('moreQCrumb').textContent = `📂 ${repo.name}/${path}`;
+      document.getElementById('moreQCrumb').textContent = `📂 ${path.split('/').pop() || repo.name}`;
       const box = document.getElementById('moreQBody');
       box.innerHTML = '<div class="mq-loading">Loading...</div>';
 
@@ -1306,26 +1586,8 @@
         const items = await res.json();
         if (!Array.isArray(items)) { box.innerHTML = '<div class="mq-empty">Yaha kuch nahi mila</div>'; return; }
 
-        let html = '';
-        if (path !== '') {
-          const parentPath = path.split('/').slice(0, -1).join('/');
-          html += `<div class="mq-folder mq-back" onclick="enterRepoFolder('${repoKey}','${parentPath}')">⬅ Back</div>`;
-      } else {
-          html += `<div class="mq-folder mq-back" onclick="renderMoreQRoot()">⬅ Back</div>`;
-        }
-
-        const folders = items.filter(i => i.type === 'dir');
-        const files = items.filter(i => i.type === 'file' && i.name.toLowerCase().endsWith('.json'));
-
-        folders.forEach(f => {
-          html += `<div class="mq-folder" onclick="enterRepoFolder('${repoKey}','${f.path}')">📁 ${f.name}</div>`;
-        });
-        files.forEach(f => {
-          html += `<div class="mq-file" onclick="openJsonFile('${repoKey}','${f.path}')">📄 ${f.name}</div>`;
-        });
-
-        if (!folders.length && !files.length) html += '<div class="mq-empty">Yaha kuch nahi hai</div>';
-        box.innerHTML = html;
+        const result = await buildFolderListHtml(repo, items, path);
+        box.innerHTML = result.hasContent ? result.html : (result.html + '<div class="mq-empty">Yaha kuch nahi hai</div>');
       } catch (e) {
         box.innerHTML = '<div class="mq-empty">Load nahi ho paaya</div>';
       }
@@ -1333,7 +1595,7 @@
 
     async function openJsonFile(repoKey, filePath, focusQIdx) {
       const repo = JSON_REPOS.find(r => r.key === repoKey);
-      document.getElementById('moreQCrumb').textContent = `📄 ${repo.name}/${filePath}`;
+      document.getElementById('moreQCrumb').textContent = '📄 Loading...';
       const box = document.getElementById('moreQBody');
       box.innerHTML = '<div class="mq-loading">Loading...</div>';
 
@@ -1341,29 +1603,57 @@
       try {
         const res = await fetch(rawUrl);
         const parsed = await res.json();
-        const subjects = Array.isArray(parsed) ? parsed : (parsed && parsed.subject ? [parsed] : []);
+        const { id, subjects } = parseJsonFile(parsed);
+        document.getElementById('moreQCrumb').textContent = `📄 ${id || filePath.split('/').pop()}`;
         renderJsonQuestions(subjects, repoKey, filePath, focusQIdx);
       } catch (e) {
         box.innerHTML = '<div class="mq-empty">JSON load nahi ho paaya</div>';
       }
     }
 
+    // Question ke meta badges — Time / Marks / Word Limit (jo bhi JSON me diya ho)
+    function buildQMetaHtml(q) {
+      const parts = [];
+      if (q.time) parts.push(`⏱ ${q.time}`);
+      if (q.marks) parts.push(`✏️ ${q.marks} Marks`);
+      if (q.wordLimit) parts.push(`📝 ${q.wordLimit} Words`);
+      if (!parts.length) return '';
+      return `<div class="q-meta">${parts.map(p => `<span class="q-meta-pill">${p}</span>`).join('')}</div>`;
+    }
+
     function renderJsonQuestions(subjects, repoKey, filePath, focusQIdx) {
       const box = document.getElementById('moreQBody');
       const parentPath = filePath.split('/').slice(0, -1).join('/');
+      const singleMode = (focusQIdx !== undefined && focusQIdx !== null && !isNaN(focusQIdx));
+
       let html = `<div class="mq-folder mq-back" onclick="enterRepoFolder('${repoKey}','${parentPath}')">⬅ Back</div>`;
+
+      if (!singleMode) {
+        html += `
+        <div class="q-actions" style="margin:12px 0 18px">
+          <button class="demo-btn" onclick="shareAllQuestions('${repoKey}','${filePath}')">📤 Share All Questions</button>
+          <button class="demo-btn" onclick="copyAllQuestionsLink('${repoKey}','${filePath}')">🔗 Copy All Link</button>
+        </div>`;
+      }
+
       let idx = 0;
       subjects.forEach(sub => {
-        html += `<div class="subject-block"><div class="subject-hd">${sub.subject}<div class="subject-src">📖 ${sub.source || ''}</div></div>`;
+        let subHtml = `<div class="subject-block"><div class="subject-hd">${sub.subject}<div class="subject-src">📖 ${sub.source || ''}</div></div>`;
+        let subHasContent = false;
         (sub.topics || []).forEach(topic => {
-          html += `<div class="topic-block"><div class="topic-name">📌 ${topic.topicName}</div>`;
+          let topicHtml = `<div class="topic-block"><div class="topic-name">📌 ${topic.topicName}</div>`;
+          let topicHasContent = false;
           (topic.questions || []).forEach(q => {
             const myIdx = idx;
+            idx++;
+            if (singleMode && myIdx !== focusQIdx) return; // sirf yehi ek question dikhega
+            topicHasContent = true;
             const qid = `mq_${myIdx}`;
             const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
-            html += `
+            topicHtml += `
         <div class="q-item" id="item_${qid}">
           <div class="q-header">
+            ${buildQMetaHtml(q)}
             <div class="q-text"><strong>Q.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
             <div class="q-actions">
               <button class="demo-btn" onclick="onProtectedAction('demo','${qid}')">👁 See Demo Answer</button>
@@ -1378,24 +1668,21 @@
             <strong>📝 Demo Answer:</strong><br><br>${q.answer.replace(/\n/g, '<br>')}
           </div>
         </div>`;
-            idx++;
           });
-          html += `</div>`;
+          topicHtml += `</div>`;
+          if (topicHasContent) { subHtml += topicHtml; subHasContent = true; }
         });
-        html += `</div>`;
+        subHtml += `</div>`;
+        if (subHasContent) html += subHtml;
       });
-      box.innerHTML = html;
 
-      if (focusQIdx !== undefined && focusQIdx !== null && !isNaN(focusQIdx)) {
-        setTimeout(() => {
-          const el = document.getElementById(`item_mq_${focusQIdx}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.style.boxShadow = '0 0 0 3px var(--accent)';
-            document.getElementById(`ans_mq_${focusQIdx}`).classList.add('show');
-          }
-        }, 300);
+      if (singleMode) {
+        html += `<div style="text-align:center;margin-top:14px">
+          <button class="btn-secondary" style="width:auto;padding:10px 20px" onclick="openJsonFile('${repoKey}','${filePath}')">📂 See All Questions in this Set</button>
+        </div>`;
       }
+
+      box.innerHTML = html;
     }
 
     // ============================================================
@@ -1422,6 +1709,35 @@
       });
     }
 
+    // Ek hi JSON file ke SAARE questions ek saath share karna
+    function shareAllQuestions(repoKey, filePath) {
+      const link = `${location.origin}${location.pathname}?src=${repoKey}&file=${encodeURIComponent(filePath)}`;
+      const msg = encodeURIComponent(`📚 ${QUIZ_NAME}\n\nSaare questions dekhein:\n${link}`);
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
+    }
+    function copyAllQuestionsLink(repoKey, filePath) {
+      const link = `${location.origin}${location.pathname}?src=${repoKey}&file=${encodeURIComponent(filePath)}`;
+      navigator.clipboard.writeText(link).then(() => {
+        alert('Link copy ho gaya ✅');
+      }).catch(() => {
+        prompt('Link copy karein:', link);
+      });
+    }
+
+    // Poori site (home page) share karna — jab local questions na ho
+    function shareHomePage() {
+      const link = location.origin + location.pathname;
+      const msg = encodeURIComponent(`📚 ${QUIZ_NAME}\n\nYe UPSC Mains practice site dekhein:\n${link}`);
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
+    }
+    function copyHomeLink() {
+      const link = location.origin + location.pathname;
+      navigator.clipboard.writeText(link).then(() => {
+        alert('Link copy ho gaya ✅');
+      }).catch(() => {
+        prompt('Link copy karein:', link);
+      });
+    }
     // URL me ?local=... ya ?src=...&file=...&q=... ho to seedha wahi question khol do
     function handleDeepLink() {
       const params = new URLSearchParams(location.search);
@@ -1517,9 +1833,10 @@
     // ============================================================
     // INIT
     // ============================================================
-if (questionsData.length === 0) {
+ if (questionsData.length === 0) {
       // Local questions na ho to seedha "More Questions" wala page khul jaye — Close button ki zarurat nahi
       document.getElementById('moreQCloseBtn').style.display = 'none';
+      document.getElementById('homeShareArea').style.display = 'block';
       openMoreQuestions();
     } else {
       renderQuestions();
