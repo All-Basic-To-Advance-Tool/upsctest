@@ -1389,8 +1389,11 @@
       if (pendingAction === 'submit' && pendingQid) {
         doSubmitAnswer(pendingQid, pendingQText);
       }
-      if (pendingAction === 'submitAll') {
+    if (pendingAction === 'submitAll') {
         doSubmitAll();
+      }
+      if (pendingAction === 'download' && pendingQid) {
+        openDownloadModal(pendingQid);
       }
       if (pendingAction === 'waGroup') {
         doOpenWaGroup();
@@ -1645,7 +1648,7 @@
               <div class="q-actions" style="margin-top:6px">
                 <button class="demo-btn" onclick="shareQuestion('local','${qid}')">📤 Share</button>
                 <button class="demo-btn" onclick="copyQuestionLink('local','${qid}')">🔗 Copy Link</button>
-                <button class="demo-btn" onclick="openDownloadModal('${qid}')">📥 Download</button>
+                <button class="demo-btn" onclick="onProtectedAction('download','${qid}')">📥 Download</button>
               </div>
               <div class="teaser-blur-actions"></div>
             </div>
@@ -2021,7 +2024,7 @@
         <div class="q-actions" style="margin:12px 0 18px">
           <button class="demo-btn" onclick="shareAllQuestions('${repoKey}','${filePath}')">📤 Share All Questions</button>
           <button class="demo-btn" onclick="copyAllQuestionsLink('${repoKey}','${filePath}')">🔗 Copy All Link</button>
-          <button class="demo-btn" onclick="openDownloadModal('file')">📥 Download</button>
+          <button class="demo-btn" onclick="onProtectedAction('download','file')">📥 Download</button>
         </div>`;
 
         // Poori file ka total time — sabhi questions ke time ka sum
@@ -2079,7 +2082,7 @@
               <div class="q-actions" style="margin-top:6px">
                 <button class="demo-btn" onclick="shareQuestion('json','${repoKey}','${filePath}',${myIdx})">📤 Share</button>
                 <button class="demo-btn" onclick="copyQuestionLink('json','${repoKey}','${filePath}',${myIdx})">🔗 Copy Link</button>
-                <button class="demo-btn" onclick="openDownloadModal('${qid}')">📥 Download</button>
+                <button class="demo-btn" onclick="onProtectedAction('download','${qid}')">📥 Download</button>
               </div>
               <div class="teaser-blur-actions"></div>
             </div>
@@ -2205,14 +2208,16 @@
         <p style="font-size:14px;line-height:1.8;word-wrap:break-word"><strong>Q.</strong> ${data.question.replace(/\n/g, '<br>')}</p>
         ${withAnswer ? `<div style="font-size:13px;line-height:1.9;margin-top:14px;word-wrap:break-word"><strong>Answer:</strong><br><br>${data.answer.replace(/\n/g, '<br>')}</div>` : ''}
       `;
-      html2pdf().from(inner).set({
-        filename: `${qid}${withAnswer ? '_with_answer' : ''}.pdf`,
-        margin: 10,
-        html2canvas: { scale: 2, useCORS: true, foreignObjectRendering: true },
-        jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      }).save().then(() => {
-        document.body.removeChild(overlay);
+      document.fonts.ready.then(() => {
+        html2pdf().from(inner).set({
+          filename: `${qid}${withAnswer ? '_with_answer' : ''}.pdf`,
+          margin: 10,
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        }).save().then(() => {
+          document.body.removeChild(overlay);
+        });
       });
     }
 
@@ -2237,7 +2242,7 @@
         html2pdf().from(inner).set({
           filename: `${currentFileData.id || 'questions'}${withAnswer ? '_with_answer' : ''}.pdf`,
           margin: 10,
-          html2canvas: { scale: 2, useCORS: true, foreignObjectRendering: true },
+          html2canvas: { scale: 2, useCORS: true },
           jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         }).save().then(() => {
