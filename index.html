@@ -1080,8 +1080,6 @@
     </div>
     <div id="moreQBody"></div>
   </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     // ============================================================
     // CONFIG
@@ -2182,73 +2180,92 @@
       if (row) row.classList.toggle('show');
     }
 
-    // PDF ke liye on-screen overlay (off-screen positioning se html2canvas blank capture karta hai, isliye ye tarika)
-    function buildPdfOverlay() {
-      const overlay = document.createElement('div');
-      overlay.id = 'pdfGenOverlay';
-      overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fff;overflow:auto;padding:24px;';
-      const note = document.createElement('div');
-      note.textContent = '📄 PDF बन रहा है...';
-      note.style.cssText = 'text-align:center;color:#4f46e5;font-weight:700;margin-bottom:14px;font-family:"Baloo 2",sans-serif;';
-      overlay.appendChild(note);
-      const inner = document.createElement('div');
-      inner.style.cssText = 'max-width:700px;margin:0 auto;font-family:Hind,sans-serif;';
-      overlay.appendChild(inner);
-      document.body.appendChild(overlay);
-      return { overlay, inner };
+    // ✅ NAYA PDF SYSTEM — window.print() use karta hai (html2pdf/html2canvas ki jagah)
+    // Isse Hindi/Devanagari text bilkul sahi render hota hai kyunki browser ka apna print engine use hota hai
+    function buildPdfHtmlDoc(titleText, bodyHtml) {
+      return `<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<title>${titleText}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans Devanagari', sans-serif; background: #fff; color: #1e1b4b; font-size: 14px; line-height: 1.8; }
+  .pdf-header { background: #4f46e5; color: #fff; text-align: center; padding: 18px 20px; }
+  .pdf-header h1 { font-family: 'Baloo 2', sans-serif; font-size: 20px; font-weight: 800; }
+  .pdf-header .sub { color: #c7d2fe; font-size: 12px; margin-top: 4px; }
+  .content { padding: 20px 24px 40px; max-width: 760px; margin: 0 auto; }
+  .q-block { margin-bottom: 22px; page-break-inside: avoid; }
+  .q-subject { font-family: 'Baloo 2', sans-serif; color: #4f46e5; font-size: 16px; font-weight: 700; margin: 18px 0 4px; }
+  .q-topic { font-family: 'Baloo 2', sans-serif; color: #3730a3; font-size: 14px; font-weight: 700; margin: 6px 0 10px; }
+  .q-text { font-size: 14.5px; line-height: 1.8; margin-bottom: 10px; word-wrap: break-word; }
+  .q-answer { font-size: 13.5px; line-height: 1.9; margin-top: 8px; padding: 12px 14px; background: #f8f9ff; border-left: 3px solid #4f46e5; border-radius: 4px; word-wrap: break-word; }
+  .q-answer b { color: #4f46e5; }
+  .print-bar { text-align: center; padding: 12px; background: #fffbeb; border-bottom: 1px solid #fde68a; }
+  .print-bar button { background: #f59e0b; border: none; padding: 8px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; margin: 0 6px; }
+  .print-bar button.close-btn { background: #ef4444; color: #fff; }
+  @media print { .print-bar { display: none; } }
+</style>
+</head>
+<body>
+  <div class="print-bar">
+    <strong>👉 PDF save करने के लिए:</strong> Ctrl+P → "Save as PDF" चुनें &nbsp;
+    <button onclick="window.print()">🖨️ Print / Save PDF</button>
+    <button class="close-btn" onclick="window.close()">✕ Close</button>
+  </div>
+  <div class="pdf-header">
+    <h1>📚 ${QUIZ_NAME}</h1>
+    <div class="sub">${new Date().toLocaleDateString('en-IN')}</div>
+  </div>
+  <div class="content">${bodyHtml}</div>
+</body>
+</html>`;
     }
 
-    // Ek single question ka PDF banana
+    function openPdfWindow(htmlContent) {
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.open();
+        win.document.write(htmlContent);
+        win.document.close();
+      } else {
+        alert('Popup block ho gaya — kripya popups allow karein aur dobara try karein');
+      }
+    }
+
+    // Ek single question ka PDF banana — window.print() se, Hindi text bilkul sahi aayega
     function downloadQuestionPDF(qid, withAnswer) {
       const data = qRegistry[qid];
       if (!data) return;
-      const { overlay, inner } = buildPdfOverlay();
-      inner.innerHTML = `
-        <h3 style="font-family:'Baloo 2',sans-serif;color:#4f46e5;margin-bottom:12px">${QUIZ_NAME}</h3>
-        <p style="font-size:14px;line-height:1.8;word-wrap:break-word"><strong>Q.</strong> ${data.question.replace(/\n/g, '<br>')}</p>
-        ${withAnswer ? `<div style="font-size:13px;line-height:1.9;margin-top:14px;word-wrap:break-word"><strong>Answer:</strong><br><br>${data.answer.replace(/\n/g, '<br>')}</div>` : ''}
-      `;
-      document.fonts.ready.then(() => {
-        html2pdf().from(inner).set({
-          filename: `${qid}${withAnswer ? '_with_answer' : ''}.pdf`,
-          margin: 10,
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-        }).save().then(() => {
-          document.body.removeChild(overlay);
-        });
-      });
+      let bodyHtml = `
+        <div class="q-block">
+          <div class="q-text"><strong>Q.</strong> ${data.question.replace(/\n/g, '<br>')}</div>
+          ${withAnswer ? `<div class="q-answer"><b>📝 Answer:</b><br><br>${data.answer.replace(/\n/g, '<br>')}</div>` : ''}
+        </div>`;
+      const html = buildPdfHtmlDoc(QUIZ_NAME, bodyHtml);
+      openPdfWindow(html);
     }
 
     // Poori JSON file ka PDF banana — jo bhi language currently selected hai usi ka
     function downloadFilePDF(withAnswer) {
       if (!currentFileData) return;
       const subjects = currentFileData[currentLang] || currentFileData.hi || [];
-      const { overlay, inner } = buildPdfOverlay();
-      let innerHtml = `<h2 style="font-family:'Baloo 2',sans-serif;color:#4f46e5">${currentFileData.id || QUIZ_NAME}</h2>`;
+      let bodyHtml = '';
       subjects.forEach(sub => {
-        innerHtml += `<h3 style="color:#3730a3;margin-top:16px">${sub.subject}</h3>`;
+        bodyHtml += `<div class="q-subject">${sub.subject}</div>`;
         (sub.topics || []).forEach(topic => {
-          innerHtml += `<h4 style="margin-top:10px">${topic.topicName}</h4>`;
+          bodyHtml += `<div class="q-topic">📌 ${topic.topicName}</div>`;
           (topic.questions || []).forEach((q, i) => {
-            innerHtml += `<p style="font-size:14px;line-height:1.8;margin-top:10px;word-wrap:break-word"><strong>Q${i + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</p>`;
-            if (withAnswer) innerHtml += `<div style="font-size:13px;line-height:1.9;margin:8px 0 14px;word-wrap:break-word"><strong>Answer:</strong><br><br>${q.answer.replace(/\n/g, '<br>')}</div>`;
+            bodyHtml += `<div class="q-block">
+              <div class="q-text"><strong>Q${i + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
+              ${withAnswer ? `<div class="q-answer"><b>📝 Answer:</b><br><br>${q.answer.replace(/\n/g, '<br>')}</div>` : ''}
+            </div>`;
           });
         });
       });
-      inner.innerHTML = innerHtml;
-      document.fonts.ready.then(() => {
-        html2pdf().from(inner).set({
-          filename: `${currentFileData.id || 'questions'}${withAnswer ? '_with_answer' : ''}.pdf`,
-          margin: 10,
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-        }).save().then(() => {
-          document.body.removeChild(overlay);
-        });
-      });
+      const html = buildPdfHtmlDoc(currentFileData.id || QUIZ_NAME, bodyHtml);
+      openPdfWindow(html);
     }
 
 
