@@ -851,8 +851,8 @@
       inset: 0;
       -webkit-backdrop-filter: blur(6px);
       backdrop-filter: blur(6px);
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 30%, black 100%);
-      mask-image: linear-gradient(to right, transparent 0%, transparent 30%, black 100%);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 50%, black 100%);
+      mask-image: linear-gradient(to right, transparent 0%, transparent 50%, black 100%);
       pointer-events: none;
     }
 
@@ -879,17 +879,49 @@
       position: absolute;
       top: 10px;
       right: 10px;
-      width: 36px;
-      height: 36px;
       background: var(--primary);
       color: #fff;
-      border-radius: 50%;
+      border-radius: 50px;
       align-items: center;
       justify-content: center;
+      gap: 6px;
       cursor: pointer;
       z-index: 10;
-      font-size: 16px;
+      font-size: 12.5px;
+      font-weight: 700;
+      font-family: 'Baloo 2', sans-serif;
+      padding: 8px 14px;
       box-shadow: 0 4px 12px rgba(79, 70, 229, .4);
+      white-space: nowrap;
+    }
+
+    /* DOWNLOAD PDF row */
+    .dl-row {
+      display: none;
+      gap: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .dl-row.show {
+      display: flex;
+    }
+
+    /* HINDI/ENGLISH TOGGLE */
+    .lang-fab {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: #fff;
+      color: var(--primary);
+      border: none;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      font-family: 'Baloo 2', sans-serif;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
     }
   </style>
 </head>
@@ -897,9 +929,10 @@
 <body>
 
   <!-- TOP BAR -->
-  <div class="top-bar">
+<div class="top-bar">
     <div class="profile-btn" id="profileBtn" onclick="toggleProfile()">?</div>
     <div class="quiz-title">📚 UPSC Mains Practice Set 1</div>
+    <button class="lang-fab" id="langFab" onclick="toggleLang()">हिं/EN</button>
     <div style="width:38px"></div>
   </div>
 
@@ -1024,6 +1057,7 @@
     <div id="moreQBody"></div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     // ============================================================
     // CONFIG
@@ -1032,7 +1066,12 @@
     const QUIZ_NAME = 'UPSC Mains Practice Set 1';
     const MY_WA_NO = '919649346723';
     const BOYS_BOT = 'https://t.me/LecturesG_bot';
-    const FREE_Q = 2; // first N questions visible without login
+   const FREE_Q = 2; // first N questions visible without login
+
+    // Har question ka data yaha store hota hai (PDF download ke liye) — qid → {question, answer}
+    let qRegistry = {};
+    let currentLang = 'hi'; // 'hi' ya 'en' — More Questions (JSON) content ke liye
+    let currentFileData = null; // { repoKey, filePath, hi, en, id, focusQIdx } — abhi khuli hui JSON file
 
     // "More Questions" ke liye GitHub repos — dono jagah se fetch hoga
     const JSON_REPOS = [
@@ -1554,13 +1593,14 @@
             const lockedCls = locked ? 'locked' : '';
             const teaserCls = teaser ? 'teaser' : '';
             const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
+            qRegistry[qid] = { question: q.question, answer: q.answer };
             html += `
         <div class="q-item ${lockedCls} ${teaserCls}" id="item_${qid}">
           <div class="lock-overlay" onclick="onProtectedAction('seeAll')">
             <span class="lock-pill">🔒 See All Questions पर Click करें</span>
           </div>
           <div class="q-header">
-            <div class="teaser-lock" onclick="onProtectedAction('seeAll')">🔒</div>
+            <div class="teaser-lock" onclick="onProtectedAction('seeAll')">🔒 Click Here to Unlock</div>
             ${buildQMetaHtml(q)}
             <div class="teaser-text-wrap">
               <div class="q-text"><strong>Q${globalIdx + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
@@ -1575,6 +1615,11 @@
               <div class="q-actions" style="margin-top:6px">
                 <button class="demo-btn" onclick="shareQuestion('local','${qid}')">📤 Share</button>
                 <button class="demo-btn" onclick="copyQuestionLink('local','${qid}')">🔗 Copy Link</button>
+                <button class="demo-btn" onclick="toggleDownloadRow('dl_${qid}')">📥 Download</button>
+              </div>
+              <div class="dl-row" id="dl_${qid}">
+                <button class="demo-btn" onclick="downloadQuestionPDF('${qid}', true)">📄 With Answer</button>
+                <button class="demo-btn" onclick="downloadQuestionPDF('${qid}', false)">📄 Without Answer</button>
               </div>
               <div class="teaser-blur-actions"></div>
             </div>
@@ -1641,13 +1686,16 @@ function unlockAllQuestions() {
       window.scrollTo(0, 0);
     }
 
-    // JSON file ke andar se { id, subjects } nikalna — naya format { id, subjects:[...] }
-    // aur purana format (bare array ya single subject object) dono chalenge
+   // JSON file ke andar se { id, hi, en } nikalna — naya bilingual format { id, hi:{subjects}, en:{subjects} }
+    // aur purana format (subjects/bare array/single subject) dono chalenge (tab English available nahi hoga)
     function parseJsonFile(parsed) {
-      if (parsed && parsed.subjects) return { id: parsed.id || null, subjects: parsed.subjects };
-      if (Array.isArray(parsed)) return { id: null, subjects: parsed };
-      if (parsed && parsed.subject) return { id: null, subjects: [parsed] };
-      return { id: null, subjects: [] };
+      if (parsed && parsed.hi && parsed.hi.subjects) {
+        return { id: parsed.id || null, hi: parsed.hi.subjects, en: (parsed.en && parsed.en.subjects) || null };
+      }
+      if (parsed && parsed.subjects) return { id: parsed.id || null, hi: parsed.subjects, en: null };
+      if (Array.isArray(parsed)) return { id: null, hi: parsed, en: null };
+      if (parsed && parsed.subject) return { id: null, hi: [parsed], en: null };
+      return { id: null, hi: [], en: null };
     }
 
     // File ka display name — JSON ke andar wala "id" use hoga, filename kabhi nahi dikhega
@@ -1750,12 +1798,14 @@ function unlockAllQuestions() {
       const box = document.getElementById('moreQBody');
       box.innerHTML = '<div class="mq-loading">Loading...</div>';
 
-      const rawUrl = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${repo.branch}/${filePath}`;
+     const rawUrl = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${repo.branch}/${filePath}`;
       try {
         const res = await fetch(rawUrl);
         const parsed = await res.json();
-        const { id, subjects } = parseJsonFile(parsed);
+        const { id, hi, en } = parseJsonFile(parsed);
         document.getElementById('moreQCrumb').textContent = `📄 ${id || filePath.split('/').pop()}`;
+        currentFileData = { repoKey, filePath, hi, en, id, focusQIdx };
+        const subjects = currentFileData[currentLang] || currentFileData.hi || [];
         renderJsonQuestions(subjects, repoKey, filePath, focusQIdx);
       } catch (e) {
         box.innerHTML = '<div class="mq-empty">JSON load nahi ho paaya</div>';
@@ -1822,14 +1872,17 @@ function unlockAllQuestions() {
       }
 
       // Same timer pe dobara click — pause/resume
+   // Same timer pe dobara click — pause/resume
       if (activeTimer && activeTimer.id === id) {
         if (activeTimer.running) {
           clearInterval(activeTimer.interval);
           activeTimer.running = false;
           document.getElementById(btnElId).textContent = '▶ Resume';
+          if (activeTimer.hooks.onStop) activeTimer.hooks.onStop(); // pause hote hi individual timers wapas dikhayein
         } else {
           activeTimer.running = true;
           document.getElementById(btnElId).textContent = '⏸ Pause';
+          if (activeTimer.hooks.beforeStart) activeTimer.hooks.beforeStart(); // resume hote hi wapas chhupayein
           activeTimer.interval = setInterval(() => tickTimer(id), 1000);
         }
         return;
@@ -1886,13 +1939,16 @@ function unlockAllQuestions() {
       } catch (e) { }
     }
 
-    // Ek single question ka timer start/pause karna
+    
+   // Ek single question ka timer start/pause karna
     function toggleQuestionTimer(qid, minutes) {
+      if (!isLoggedIn) { onProtectedAction('seeAll'); return; } // Password ke baad hi timer chalega
       startOrToggleTimer('q_' + qid, minutes * 60, `timerDisplay_${qid}`, `item_${qid}`, `timerBtn_${qid}`, {});
     }
 
     // Poori JSON file ka total timer — chalu hote hi individual question timers chhup jaate hain
     function toggleFileTimer(fileKey, totalMinutes) {
+      if (!isLoggedIn) { onProtectedAction('seeAll'); return; } // Password ke baad hi timer chalega
       startOrToggleTimer('file_' + fileKey, totalMinutes * 60, `fileTimerDisplay_${fileKey}`, `fileTimerCard_${fileKey}`, `fileTimerBtn_${fileKey}`, {
         beforeStart: () => { document.querySelectorAll('.q-timer-row').forEach(el => el.style.display = 'none'); },
         onStop: () => { document.querySelectorAll('.q-timer-row').forEach(el => el.style.display = 'flex'); },
@@ -1909,11 +1965,16 @@ function unlockAllQuestions() {
 
       let html = `<div class="mq-folder mq-back" onclick="enterRepoFolder('${repoKey}','${parentPath}')">⬅ Back</div>`;
 
-      if (!singleMode) {
+     if (!singleMode) {
         html += `
         <div class="q-actions" style="margin:12px 0 18px">
           <button class="demo-btn" onclick="shareAllQuestions('${repoKey}','${filePath}')">📤 Share All Questions</button>
           <button class="demo-btn" onclick="copyAllQuestionsLink('${repoKey}','${filePath}')">🔗 Copy All Link</button>
+          <button class="demo-btn" onclick="toggleDownloadRow('dl_file_${fileKey}')">📥 Download</button>
+        </div>
+        <div class="dl-row" id="dl_file_${fileKey}" style="margin-bottom:16px">
+          <button class="demo-btn" onclick="downloadFilePDF(true)">📄 With Answer</button>
+          <button class="demo-btn" onclick="downloadFilePDF(false)">📄 Without Answer</button>
         </div>`;
 
         // Poori file ka total time — sabhi questions ke time ka sum
@@ -1949,13 +2010,14 @@ function unlockAllQuestions() {
             const jLockedCls = jLocked ? 'locked' : '';
             const jTeaserCls = jTeaser ? 'teaser' : '';
             const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
+            qRegistry[qid] = { question: q.question, answer: q.answer };
             topicHtml += `
         <div class="q-item ${jLockedCls} ${jTeaserCls}" id="item_${qid}">
           <div class="lock-overlay" onclick="onProtectedAction('seeAll')">
             <span class="lock-pill">🔒 See All Questions पर Click करें</span>
           </div>
           <div class="q-header">
-            <div class="teaser-lock" onclick="onProtectedAction('seeAll')">🔒</div>
+            <div class="teaser-lock" onclick="onProtectedAction('seeAll')">🔒 Click Here to Unlock</div>
             ${buildQMetaHtml(q)}
             <div class="teaser-text-wrap">
               <div class="q-text"><strong>Q.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
@@ -1970,6 +2032,11 @@ function unlockAllQuestions() {
               <div class="q-actions" style="margin-top:6px">
                 <button class="demo-btn" onclick="shareQuestion('json','${repoKey}','${filePath}',${myIdx})">📤 Share</button>
                 <button class="demo-btn" onclick="copyQuestionLink('json','${repoKey}','${filePath}',${myIdx})">🔗 Copy Link</button>
+                <button class="demo-btn" onclick="toggleDownloadRow('dl_${qid}')">📥 Download</button>
+              </div>
+              <div class="dl-row" id="dl_${qid}">
+                <button class="demo-btn" onclick="downloadQuestionPDF('${qid}', true)">📄 With Answer</button>
+                <button class="demo-btn" onclick="downloadQuestionPDF('${qid}', false)">📄 Without Answer</button>
               </div>
               <div class="teaser-blur-actions"></div>
             </div>
@@ -2047,6 +2114,59 @@ function unlockAllQuestions() {
       }).catch(() => {
         prompt('Link copy karein:', link);
       });
+    }
+
+   // Hindi/English toggle — sirf JSON (More Questions) content ke liye
+    function toggleLang() {
+      currentLang = currentLang === 'hi' ? 'en' : 'hi';
+      document.getElementById('langFab').textContent = currentLang === 'hi' ? 'हिं/EN' : 'EN/हिं';
+      if (currentFileData) {
+        const subjects = currentFileData[currentLang] || currentFileData.hi || [];
+        renderJsonQuestions(subjects, currentFileData.repoKey, currentFileData.filePath, currentFileData.focusQIdx);
+      }
+    }
+
+    // Download row (With Answer / Without Answer options) show/hide
+    function toggleDownloadRow(id) {
+      const row = document.getElementById(id);
+      if (row) row.classList.toggle('show');
+    }
+
+    // Ek single question ka PDF banana
+    function downloadQuestionPDF(qid, withAnswer) {
+      const data = qRegistry[qid];
+      if (!data) return;
+      const container = document.createElement('div');
+      container.style.padding = '20px';
+      container.style.fontFamily = "'Hind', sans-serif";
+      container.innerHTML = `
+        <h3 style="font-family:'Baloo 2',sans-serif;color:#4f46e5">${QUIZ_NAME}</h3>
+        <p style="font-size:14px;line-height:1.7"><strong>Q.</strong> ${data.question.replace(/\n/g, '<br>')}</p>
+        ${withAnswer ? `<div style="font-size:13px;line-height:1.8;margin-top:14px"><strong>Answer:</strong><br><br>${data.answer.replace(/\n/g, '<br>')}</div>` : ''}
+      `;
+      html2pdf().from(container).set({ filename: `${qid}${withAnswer ? '_with_answer' : ''}.pdf`, margin: 10 }).save();
+    }
+
+    // Poori JSON file ka PDF banana — jo bhi language currently selected hai usi ka
+    function downloadFilePDF(withAnswer) {
+      if (!currentFileData) return;
+      const subjects = currentFileData[currentLang] || currentFileData.hi || [];
+      const container = document.createElement('div');
+      container.style.padding = '20px';
+      container.style.fontFamily = "'Hind', sans-serif";
+      let inner = `<h2 style="font-family:'Baloo 2',sans-serif;color:#4f46e5">${currentFileData.id || QUIZ_NAME}</h2>`;
+      subjects.forEach(sub => {
+        inner += `<h3 style="color:#3730a3;margin-top:16px">${sub.subject}</h3>`;
+        (sub.topics || []).forEach(topic => {
+          inner += `<h4 style="margin-top:10px">${topic.topicName}</h4>`;
+          (topic.questions || []).forEach((q, i) => {
+            inner += `<p style="font-size:14px;line-height:1.7;margin-top:10px"><strong>Q${i + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</p>`;
+            if (withAnswer) inner += `<div style="font-size:13px;line-height:1.8;margin:8px 0 14px"><strong>Answer:</strong><br><br>${q.answer.replace(/\n/g, '<br>')}</div>`;
+          });
+        });
+      });
+      container.innerHTML = inner;
+      html2pdf().from(container).set({ filename: `${currentFileData.id || 'questions'}${withAnswer ? '_with_answer' : ''}.pdf`, margin: 10 }).save();
     }
 
     // Generic — kisi bhi ready-made link ko share/copy karna (folder pages ke liye)
