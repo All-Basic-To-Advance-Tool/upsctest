@@ -829,7 +829,7 @@
       background: #fee2e2;
     }
 
-.mq-share-bar {
+    .mq-share-bar {
       display: flex;
       gap: 8px;
       margin-bottom: 12px;
@@ -849,25 +849,21 @@
     .q-item.teaser .teaser-text-wrap .teaser-blur-text {
       position: absolute;
       inset: 0;
-      -webkit-backdrop-filter: blur(6px);
-      backdrop-filter: blur(6px);
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 50%, black 100%);
-      mask-image: linear-gradient(to right, transparent 0%, transparent 50%, black 100%);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      background: rgba(240, 244, 255, .35);
+      -webkit-clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+      clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
       pointer-events: none;
     }
 
+    /* Buttons ab teaser me bhi saaf dikhenge, blur nahi honge */
     .q-item.teaser .teaser-actions-wrap .teaser-blur-actions {
-      position: absolute;
-      inset: 0;
-      -webkit-backdrop-filter: blur(1.5px);
-      backdrop-filter: blur(1.5px);
-      background: rgba(255, 255, 255, .2);
-      pointer-events: none;
-      border-radius: 8px;
+      display: none;
     }
 
     .q-item.teaser .teaser-actions-wrap button {
-      pointer-events: none;
+      pointer-events: auto;
     }
 
     .teaser-lock {
@@ -909,19 +905,22 @@
 
     /* HINDI/ENGLISH TOGGLE */
     .lang-fab {
-      position: absolute;
-      top: 8px;
-      right: 12px;
       background: #fff;
       color: var(--primary);
       border: none;
       border-radius: 20px;
-      padding: 6px 12px;
-      font-size: 12px;
+      padding: 8px 14px;
+      font-size: 12.5px;
       font-weight: 800;
       font-family: 'Baloo 2', sans-serif;
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+      flex-shrink: 0;
+      transition: transform .15s;
+    }
+
+    .lang-fab:hover {
+      transform: scale(1.05);
     }
   </style>
 </head>
@@ -929,11 +928,10 @@
 <body>
 
   <!-- TOP BAR -->
-<div class="top-bar">
+  <div class="top-bar">
     <div class="profile-btn" id="profileBtn" onclick="toggleProfile()">?</div>
     <div class="quiz-title">📚 UPSC Mains Practice Set 1</div>
     <button class="lang-fab" id="langFab" onclick="toggleLang()">हिं/EN</button>
-    <div style="width:38px"></div>
   </div>
 
   <!-- PROFILE PANEL -->
@@ -1066,11 +1064,11 @@
     const QUIZ_NAME = 'UPSC Mains Practice Set 1';
     const MY_WA_NO = '919649346723';
     const BOYS_BOT = 'https://t.me/LecturesG_bot';
-   const FREE_Q = 2; // first N questions visible without login
+    const FREE_Q = 2; // first N questions visible without login
 
     // Har question ka data yaha store hota hai (PDF download ke liye) — qid → {question, answer}
     let qRegistry = {};
-    let currentLang = 'hi'; // 'hi' ya 'en' — More Questions (JSON) content ke liye
+    let currentLang = localStorage.getItem('upsc_lang') || 'hi'; // 'hi' ya 'en' — localStorage se persist hota hai
     let currentFileData = null; // { repoKey, filePath, hi, en, id, focusQIdx } — abhi khuli hui JSON file
 
     // "More Questions" ke liye GitHub repos — dono jagah se fetch hoga
@@ -1575,26 +1573,32 @@
     // RENDER QUESTIONS
     // ============================================================
     let globalIdx = 0;
-    function renderQuestions() {
+    let localFocusQid = null; // agar kisi single local question ka share link khola gaya ho
+    function renderQuestions(focusQid) {
       const container = document.getElementById('questionsContainer');
       container.innerHTML = '';
       globalIdx = 0;
+      localFocusQid = focusQid || null;
 
       questionsData.forEach((sub, si) => {
-        const block = document.createElement('div');
-        block.className = 'subject-block';
         let html = `<div class="subject-hd">${sub.subject}<div class="subject-src">📖 ${sub.source}</div></div>`;
+        let subHasContent = false;
         sub.topics.forEach((topic, ti) => {
-          html += `<div class="topic-block"><div class="topic-name">📌 ${topic.topicName}</div>`;
+          let topicHtml = `<div class="topic-block"><div class="topic-name">📌 ${topic.topicName}</div>`;
+          let topicHasContent = false;
           topic.questions.forEach((q, qi) => {
             const qid = `q${si}_${ti}_${qi}`;
-            const locked = !isLoggedIn && globalIdx >= FREE_Q;
-            const teaser = !isLoggedIn && globalIdx < FREE_Q;
+            const myIdx = globalIdx;
+            globalIdx++;
+            qRegistry[qid] = { question: q.question, answer: q.answer };
+            if (localFocusQid && qid !== localFocusQid) return; // sirf shared wala question dikhana hai
+            topicHasContent = true;
+            const locked = !isLoggedIn && myIdx >= FREE_Q;
+            const teaser = !isLoggedIn && myIdx < FREE_Q;
             const lockedCls = locked ? 'locked' : '';
             const teaserCls = teaser ? 'teaser' : '';
             const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
-            qRegistry[qid] = { question: q.question, answer: q.answer };
-            html += `
+            topicHtml += `
         <div class="q-item ${lockedCls} ${teaserCls}" id="item_${qid}">
           <div class="lock-overlay" onclick="onProtectedAction('seeAll')">
             <span class="lock-pill">🔒 See All Questions पर Click करें</span>
@@ -1603,7 +1607,7 @@
             <div class="teaser-lock" onclick="onProtectedAction('seeAll')">🔒 Click Here to Unlock</div>
             ${buildQMetaHtml(q)}
             <div class="teaser-text-wrap">
-              <div class="q-text"><strong>Q${globalIdx + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
+              <div class="q-text"><strong>Q${myIdx + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
               <div class="teaser-blur-text"></div>
             </div>
             ${buildQTimerRow(qid, q)}
@@ -1628,13 +1632,29 @@
             <strong>📝 Demo Answer:</strong><br><br>${q.answer.replace(/\n/g, '<br>')}
           </div>
         </div>`;
-            globalIdx++;
           });
-          html += `</div>`;
+          topicHtml += `</div>`;
+          if (topicHasContent) { html += topicHtml; subHasContent = true; }
         });
-        block.innerHTML = html;
-        container.appendChild(block);
+        if (subHasContent) {
+          const block = document.createElement('div');
+          block.className = 'subject-block';
+          block.innerHTML = html;
+          container.appendChild(block);
+        }
       });
+
+      // Single-question view me "See All" wapas dikhane ke liye button
+      const oldBackBtn = document.getElementById('localSeeAllBtn');
+      if (oldBackBtn) oldBackBtn.remove();
+      if (localFocusQid) {
+        const backWrap = document.createElement('div');
+        backWrap.id = 'localSeeAllBtn';
+        backWrap.style.textAlign = 'center';
+        backWrap.style.marginTop = '14px';
+        backWrap.innerHTML = `<button class="btn-secondary" style="width:auto;padding:10px 20px" onclick="renderQuestions()">📂 See All Questions</button>`;
+        container.appendChild(backWrap);
+      }
 
       updateWaLink();
     }
@@ -1649,7 +1669,7 @@
       }
     }
 
-function unlockAllQuestions() {
+    function unlockAllQuestions() {
       document.querySelectorAll('.q-item.locked').forEach(el => {
         el.classList.remove('locked');
       });
@@ -1668,12 +1688,17 @@ function unlockAllQuestions() {
     // MORE QUESTIONS — GitHub JSON folder browser
     // ============================================================
     function openMoreQuestions() {
+      showMoreQPanel();
+      renderMoreQRoot();
+    }
+
+    // Sirf panel show/hide karta hai — root list load NAHI karta (deep-link me race-condition rokne ke liye)
+    function showMoreQPanel() {
       document.getElementById('mainWrap').style.display = 'none';
       document.getElementById('fab').style.display = 'none';
       document.getElementById('moreQFab').style.display = 'none';
       document.getElementById('moreQWrap').style.display = 'block';
       window.scrollTo(0, 0);
-      renderMoreQRoot();
     }
 
     function closeMoreQuestions() {
@@ -1686,7 +1711,7 @@ function unlockAllQuestions() {
       window.scrollTo(0, 0);
     }
 
-   // JSON file ke andar se { id, hi, en } nikalna — naya bilingual format { id, hi:{subjects}, en:{subjects} }
+    // JSON file ke andar se { id, hi, en } nikalna — naya bilingual format { id, hi:{subjects}, en:{subjects} }
     // aur purana format (subjects/bare array/single subject) dono chalenge (tab English available nahi hoga)
     function parseJsonFile(parsed) {
       if (parsed && parsed.hi && parsed.hi.subjects) {
@@ -1798,7 +1823,7 @@ function unlockAllQuestions() {
       const box = document.getElementById('moreQBody');
       box.innerHTML = '<div class="mq-loading">Loading...</div>';
 
-     const rawUrl = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${repo.branch}/${filePath}`;
+      const rawUrl = `https://raw.githubusercontent.com/${repo.owner}/${repo.repo}/${repo.branch}/${filePath}`;
       try {
         const res = await fetch(rawUrl);
         const parsed = await res.json();
@@ -1872,7 +1897,7 @@ function unlockAllQuestions() {
       }
 
       // Same timer pe dobara click — pause/resume
-   // Same timer pe dobara click — pause/resume
+      // Same timer pe dobara click — pause/resume
       if (activeTimer && activeTimer.id === id) {
         if (activeTimer.running) {
           clearInterval(activeTimer.interval);
@@ -1939,8 +1964,8 @@ function unlockAllQuestions() {
       } catch (e) { }
     }
 
-    
-   // Ek single question ka timer start/pause karna
+
+    // Ek single question ka timer start/pause karna
     function toggleQuestionTimer(qid, minutes) {
       if (!isLoggedIn) { onProtectedAction('seeAll'); return; } // Password ke baad hi timer chalega
       startOrToggleTimer('q_' + qid, minutes * 60, `timerDisplay_${qid}`, `item_${qid}`, `timerBtn_${qid}`, {});
@@ -1955,7 +1980,7 @@ function unlockAllQuestions() {
         onFinish: () => { document.querySelectorAll('.q-timer-row').forEach(el => el.style.display = 'flex'); }
       });
     }
-  
+
 
     function renderJsonQuestions(subjects, repoKey, filePath, focusQIdx) {
       const box = document.getElementById('moreQBody');
@@ -1965,7 +1990,7 @@ function unlockAllQuestions() {
 
       let html = `<div class="mq-folder mq-back" onclick="enterRepoFolder('${repoKey}','${parentPath}')">⬅ Back</div>`;
 
-     if (!singleMode) {
+      if (!singleMode) {
         html += `
         <div class="q-actions" style="margin:12px 0 18px">
           <button class="demo-btn" onclick="shareAllQuestions('${repoKey}','${filePath}')">📤 Share All Questions</button>
@@ -2000,7 +2025,7 @@ function unlockAllQuestions() {
           let topicHtml = `<div class="topic-block"><div class="topic-name">📌 ${topic.topicName}</div>`;
           let topicHasContent = false;
           (topic.questions || []).forEach(q => {
-           const myIdx = idx;
+            const myIdx = idx;
             idx++;
             if (singleMode && myIdx !== focusQIdx) return; // sirf yehi ek question dikhega
             topicHasContent = true;
@@ -2116,14 +2141,18 @@ function unlockAllQuestions() {
       });
     }
 
-   // Hindi/English toggle — sirf JSON (More Questions) content ke liye
+    // Hindi/English toggle — sirf JSON (More Questions) content ke liye
     function toggleLang() {
       currentLang = currentLang === 'hi' ? 'en' : 'hi';
-      document.getElementById('langFab').textContent = currentLang === 'hi' ? 'हिं/EN' : 'EN/हिं';
+      localStorage.setItem('upsc_lang', currentLang);
+      updateLangFabLabel();
       if (currentFileData) {
         const subjects = currentFileData[currentLang] || currentFileData.hi || [];
         renderJsonQuestions(subjects, currentFileData.repoKey, currentFileData.filePath, currentFileData.focusQIdx);
       }
+    }
+    function updateLangFabLabel() {
+      document.getElementById('langFab').textContent = currentLang === 'hi' ? 'हिं ✓ / EN' : 'हिं / EN ✓';
     }
 
     // Download row (With Answer / Without Answer options) show/hide
@@ -2137,14 +2166,22 @@ function unlockAllQuestions() {
       const data = qRegistry[qid];
       if (!data) return;
       const container = document.createElement('div');
-      container.style.padding = '20px';
-      container.style.fontFamily = "'Hind', sans-serif";
+      container.style.cssText = 'position:fixed;left:-9999px;top:0;width:700px;padding:24px;background:#fff;font-family:Hind,sans-serif;';
       container.innerHTML = `
-        <h3 style="font-family:'Baloo 2',sans-serif;color:#4f46e5">${QUIZ_NAME}</h3>
-        <p style="font-size:14px;line-height:1.7"><strong>Q.</strong> ${data.question.replace(/\n/g, '<br>')}</p>
-        ${withAnswer ? `<div style="font-size:13px;line-height:1.8;margin-top:14px"><strong>Answer:</strong><br><br>${data.answer.replace(/\n/g, '<br>')}</div>` : ''}
+        <h3 style="font-family:'Baloo 2',sans-serif;color:#4f46e5;margin-bottom:12px">${QUIZ_NAME}</h3>
+        <p style="font-size:14px;line-height:1.8;word-wrap:break-word"><strong>Q.</strong> ${data.question.replace(/\n/g, '<br>')}</p>
+        ${withAnswer ? `<div style="font-size:13px;line-height:1.9;margin-top:14px;word-wrap:break-word"><strong>Answer:</strong><br><br>${data.answer.replace(/\n/g, '<br>')}</div>` : ''}
       `;
-      html2pdf().from(container).set({ filename: `${qid}${withAnswer ? '_with_answer' : ''}.pdf`, margin: 10 }).save();
+      document.body.appendChild(container);
+      html2pdf().from(container).set({
+        filename: `${qid}${withAnswer ? '_with_answer' : ''}.pdf`,
+        margin: 10,
+        html2canvas: { scale: 2, useCORS: true, windowWidth: 700 },
+        jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      }).save().then(() => {
+        document.body.removeChild(container);
+      });
     }
 
     // Poori JSON file ka PDF banana — jo bhi language currently selected hai usi ka
@@ -2152,21 +2189,29 @@ function unlockAllQuestions() {
       if (!currentFileData) return;
       const subjects = currentFileData[currentLang] || currentFileData.hi || [];
       const container = document.createElement('div');
-      container.style.padding = '20px';
-      container.style.fontFamily = "'Hind', sans-serif";
+      container.style.cssText = 'position:fixed;left:-9999px;top:0;width:700px;padding:24px;background:#fff;font-family:Hind,sans-serif;';
       let inner = `<h2 style="font-family:'Baloo 2',sans-serif;color:#4f46e5">${currentFileData.id || QUIZ_NAME}</h2>`;
       subjects.forEach(sub => {
         inner += `<h3 style="color:#3730a3;margin-top:16px">${sub.subject}</h3>`;
         (sub.topics || []).forEach(topic => {
           inner += `<h4 style="margin-top:10px">${topic.topicName}</h4>`;
           (topic.questions || []).forEach((q, i) => {
-            inner += `<p style="font-size:14px;line-height:1.7;margin-top:10px"><strong>Q${i + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</p>`;
-            if (withAnswer) inner += `<div style="font-size:13px;line-height:1.8;margin:8px 0 14px"><strong>Answer:</strong><br><br>${q.answer.replace(/\n/g, '<br>')}</div>`;
+            inner += `<p style="font-size:14px;line-height:1.8;margin-top:10px;word-wrap:break-word"><strong>Q${i + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</p>`;
+            if (withAnswer) inner += `<div style="font-size:13px;line-height:1.9;margin:8px 0 14px;word-wrap:break-word"><strong>Answer:</strong><br><br>${q.answer.replace(/\n/g, '<br>')}</div>`;
           });
         });
       });
       container.innerHTML = inner;
-      html2pdf().from(container).set({ filename: `${currentFileData.id || 'questions'}${withAnswer ? '_with_answer' : ''}.pdf`, margin: 10 }).save();
+      document.body.appendChild(container);
+      html2pdf().from(container).set({
+        filename: `${currentFileData.id || 'questions'}${withAnswer ? '_with_answer' : ''}.pdf`,
+        margin: 10,
+        html2canvas: { scale: 2, useCORS: true, windowWidth: 700 },
+        jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      }).save().then(() => {
+        document.body.removeChild(container);
+      });
     }
 
     // Generic — kisi bhi ready-made link ko share/copy karna (folder pages ke liye)
@@ -2191,18 +2236,16 @@ function unlockAllQuestions() {
       const qIdx = params.get('q');
 
       if (localQid) {
+        renderQuestions(localQid); // sirf yehi ek question dikhega
         setTimeout(() => {
           const el = document.getElementById('item_' + localQid);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            document.getElementById('ans_' + localQid).classList.add('show');
-          }
-        }, 500);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
         return;
       }
 
       if (src && file) {
-        openMoreQuestions();
+        showMoreQPanel();
         openJsonFile(src, file, qIdx !== null ? parseInt(qIdx) : null);
         return;
       }
@@ -2213,94 +2256,93 @@ function unlockAllQuestions() {
       }
 
       if (src && path !== null) {
-        openMoreQuestions();
+        showMoreQPanel();
         enterRepoFolder(src, path);
       }
-    }
-
-    // ============================================================
-    // SUBMIT ANSWER
-    // ============================================================
-    function doSubmitAnswer(qid, qText) {
-      if (user.gender === 'Girl') {
-        const msg = encodeURIComponent(`📝 Answer Submit\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n\n❓ Question:\n${qText.substring(0, 250)}\n\n✍️ My Answer:\n[यहाँ answer लिखें या photo भेजें]`);
-        window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
-      } else {
-        window.open(BOYS_BOT, '_blank');
-      }
-    }
-    function doSubmitAll() {
-      if (user.gender === 'Girl') {
-        const msg = encodeURIComponent(`📚 All Answers Submit\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n🚻 Gender: ${user.gender}\n\n[सभी answers यहाँ लिखें या photos भेजें]`);
-        window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
-      } else {
-        window.open(BOYS_BOT, '_blank');
-      }
-    }
-    function openWaGroup() {
-      if (!isLoggedIn) {
-        pendingAction = 'waGroup';
-        if (user.name && user.mobile && user.gender) {
-          wrongAttempts = 0;
-          openPasswordModal();
+      // ============================================================
+      // SUBMIT ANSWER
+      // ============================================================
+      function doSubmitAnswer(qid, qText) {
+        if (user.gender === 'Girl') {
+          const msg = encodeURIComponent(`📝 Answer Submit\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n\n❓ Question:\n${qText.substring(0, 250)}\n\n✍️ My Answer:\n[यहाँ answer लिखें या photo भेजें]`);
+          window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
         } else {
-          openModal('regModal');
+          window.open(BOYS_BOT, '_blank');
         }
+      }
+      function doSubmitAll() {
+        if (user.gender === 'Girl') {
+          const msg = encodeURIComponent(`📚 All Answers Submit\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n🚻 Gender: ${user.gender}\n\n[सभी answers यहाँ लिखें या photos भेजें]`);
+          window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
+        } else {
+          window.open(BOYS_BOT, '_blank');
+        }
+      }
+      function openWaGroup() {
+        if (!isLoggedIn) {
+          pendingAction = 'waGroup';
+          if (user.name && user.mobile && user.gender) {
+            wrongAttempts = 0;
+            openPasswordModal();
+          } else {
+            openModal('regModal');
+          }
+          return false;
+        }
+        doOpenWaGroup();
         return false;
       }
-      doOpenWaGroup();
-      return false;
-    }
-    function doOpenWaGroup() {
-      if (user.gender === 'Girl') {
-        const msg = encodeURIComponent(`📚 Answer Writing Group Join Request\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n🚻 Gender: ${user.gender}\n\nMujhe Girls UPSC Answer Writing Group mein add karein`);
-        window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
-      } else {
-        window.open('https://chat.whatsapp.com/CElwHrE2iMbI3Y3GNVMzq3', '_blank');
+      function doOpenWaGroup() {
+        if (user.gender === 'Girl') {
+          const msg = encodeURIComponent(`📚 Answer Writing Group Join Request\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n🚻 Gender: ${user.gender}\n\nMujhe Girls UPSC Answer Writing Group mein add karein`);
+          window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
+        } else {
+          window.open('https://chat.whatsapp.com/CElwHrE2iMbI3Y3GNVMzq3', '_blank');
+        }
       }
-    }
 
-    // ============================================================
-    // TELEGRAM TRACKING
-    // ============================================================
-    async function track(data) {
-      try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST', headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(data)
+      // ============================================================
+      // TELEGRAM TRACKING
+      // ============================================================
+      async function track(data) {
+        try {
+          await fetch(SCRIPT_URL, {
+            method: 'POST', headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(data)
+          });
+        } catch (e) { }
+      }
+
+      // ============================================================
+      // SCROLL → show FAB after first 2 questions
+      // ============================================================
+      function setupFAB() {
+        if (isLoggedIn) return;
+        const fab = document.getElementById('fab');
+        let shown = false;
+        window.addEventListener('scroll', () => {
+          if (document.getElementById('moreQWrap').style.display === 'block') return; // More Questions page pr FAB nahi dikhna chahiye
+          if (isLoggedIn) { fab.style.display = 'none'; return; }
+          if (window.scrollY > 120 && !shown) { shown = true; fab.style.display = 'flex'; }
         });
-      } catch (e) { }
-    }
+      }
 
-    // ============================================================
-    // SCROLL → show FAB after first 2 questions
-    // ============================================================
-    function setupFAB() {
-      if (isLoggedIn) return;
-      const fab = document.getElementById('fab');
-      let shown = false;
-      window.addEventListener('scroll', () => {
-        if (document.getElementById('moreQWrap').style.display === 'block') return; // More Questions page pr FAB nahi dikhna chahiye
-        if (isLoggedIn) { fab.style.display = 'none'; return; }
-        if (window.scrollY > 120 && !shown) { shown = true; fab.style.display = 'flex'; }
-      });
-    }
-
-    // ============================================================
-    // INIT
-    // ============================================================
-    if (questionsData.length === 0) {
-      // Local questions na ho to seedha "More Questions" wala page khul jaye — Close button ki zarurat nahi
-      document.getElementById('moreQCloseBtn').style.display = 'none';
-      document.getElementById('homeShareArea').style.display = 'block';
-      openMoreQuestions();
-    } else {
-      renderQuestions();
-      setupFAB();
-    }
-    updateAvatarBtn();
-    updateWaLink();
-    handleDeepLink();
+      // ============================================================
+      // INIT
+      // ============================================================
+      if (questionsData.length === 0) {
+        // Local questions na ho to seedha "More Questions" wala page khul jaye — Close button ki zarurat nahi
+        document.getElementById('moreQCloseBtn').style.display = 'none';
+        document.getElementById('homeShareArea').style.display = 'block';
+        openMoreQuestions();
+      } else {
+        renderQuestions();
+        setupFAB();
+      }
+      updateAvatarBtn();
+      updateWaLink();
+      updateLangFabLabel();
+      handleDeepLink();
   </script>
 </body>
 
