@@ -790,6 +790,22 @@
       background: #d97706;
     }
 
+    /* Timer chalu (running) ho to LAL, ruka/khatam ho to normal orange/grey */
+    .timer-btn.running {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .timer-btn.running:hover {
+      background: #dc2626;
+    }
+
+    .timer-btn.done {
+      background: #9ca3af;
+      color: #fff;
+      cursor: default;
+    }
+
     .timer-display {
       font-family: 'Baloo 2', sans-serif;
       font-size: 16px;
@@ -1034,6 +1050,16 @@
       <div id="getPwArea"></div>
 
       <button class="btn-secondary" onclick="closeModal('pwModal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ======= MODAL: DOWNLOAD PDF ======= -->
+  <div class="modal-overlay" id="dlModal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeModal('dlModal')">✕</button>
+      <div class="modal-title">📥 PDF Download करें</div>
+      <button class="btn-main" id="dlWithAnsBtn" style="margin-bottom:10px">📄 With Answer (Explanation)</button>
+      <button class="btn-main" id="dlWithoutAnsBtn" style="background:var(--muted)">📄 Without Answer</button>
     </div>
   </div>
 
@@ -1619,11 +1645,7 @@
               <div class="q-actions" style="margin-top:6px">
                 <button class="demo-btn" onclick="shareQuestion('local','${qid}')">📤 Share</button>
                 <button class="demo-btn" onclick="copyQuestionLink('local','${qid}')">🔗 Copy Link</button>
-                <button class="demo-btn" onclick="toggleDownloadRow('dl_${qid}')">📥 Download</button>
-              </div>
-              <div class="dl-row" id="dl_${qid}">
-                <button class="demo-btn" onclick="downloadQuestionPDF('${qid}', true)">📄 With Answer</button>
-                <button class="demo-btn" onclick="downloadQuestionPDF('${qid}', false)">📄 Without Answer</button>
+                <button class="demo-btn" onclick="openDownloadModal('${qid}')">📥 Download</button>
               </div>
               <div class="teaser-blur-actions"></div>
             </div>
@@ -1891,22 +1913,24 @@
         const prevDisplay = document.getElementById(activeTimer.displayElId);
         if (prevDisplay) prevDisplay.textContent = formatMMSS(activeTimer.originalSeconds);
         const prevBtn = document.getElementById(activeTimer.btnElId);
-        if (prevBtn) prevBtn.textContent = '▶ Start Timer';
+        if (prevBtn) { prevBtn.textContent = '▶ Start Timer'; prevBtn.classList.remove('running'); }
         if (activeTimer.hooks.onStop) activeTimer.hooks.onStop();
         activeTimer = null;
       }
 
       // Same timer pe dobara click — pause/resume
-      // Same timer pe dobara click — pause/resume
       if (activeTimer && activeTimer.id === id) {
+        const btn = document.getElementById(btnElId);
         if (activeTimer.running) {
           clearInterval(activeTimer.interval);
           activeTimer.running = false;
-          document.getElementById(btnElId).textContent = '▶ Resume';
+          btn.textContent = '▶ Resume';
+          btn.classList.remove('running');
           if (activeTimer.hooks.onStop) activeTimer.hooks.onStop(); // pause hote hi individual timers wapas dikhayein
         } else {
           activeTimer.running = true;
-          document.getElementById(btnElId).textContent = '⏸ Pause';
+          btn.textContent = '⏸ Pause';
+          btn.classList.add('running');
           if (activeTimer.hooks.beforeStart) activeTimer.hooks.beforeStart(); // resume hote hi wapas chhupayein
           activeTimer.interval = setInterval(() => tickTimer(id), 1000);
         }
@@ -1917,7 +1941,9 @@
       if (hooks.beforeStart) hooks.beforeStart();
       const card = document.getElementById(cardElId);
       if (card) { card.classList.remove('timer-ended'); card.classList.add('timer-active'); }
-      document.getElementById(btnElId).textContent = '⏸ Pause';
+      const btn = document.getElementById(btnElId);
+      btn.textContent = '⏸ Pause';
+      btn.classList.add('running');
 
       activeTimer = {
         id, remaining: seconds, originalSeconds: seconds,
@@ -1938,7 +1964,7 @@
         const card = document.getElementById(activeTimer.cardElId);
         if (card) { card.classList.remove('timer-active'); card.classList.add('timer-ended'); }
         const btn = document.getElementById(activeTimer.btnElId);
-        if (btn) btn.textContent = '✓ Time Up';
+        if (btn) { btn.textContent = '✓ Time Up'; btn.classList.remove('running'); btn.classList.add('done'); }
         if (activeTimer.hooks.onFinish) activeTimer.hooks.onFinish();
         ringAlarm();
         activeTimer = null;
@@ -1995,11 +2021,7 @@
         <div class="q-actions" style="margin:12px 0 18px">
           <button class="demo-btn" onclick="shareAllQuestions('${repoKey}','${filePath}')">📤 Share All Questions</button>
           <button class="demo-btn" onclick="copyAllQuestionsLink('${repoKey}','${filePath}')">🔗 Copy All Link</button>
-          <button class="demo-btn" onclick="toggleDownloadRow('dl_file_${fileKey}')">📥 Download</button>
-        </div>
-        <div class="dl-row" id="dl_file_${fileKey}" style="margin-bottom:16px">
-          <button class="demo-btn" onclick="downloadFilePDF(true)">📄 With Answer</button>
-          <button class="demo-btn" onclick="downloadFilePDF(false)">📄 Without Answer</button>
+          <button class="demo-btn" onclick="openDownloadModal('file')">📥 Download</button>
         </div>`;
 
         // Poori file ka total time — sabhi questions ke time ka sum
@@ -2057,11 +2079,7 @@
               <div class="q-actions" style="margin-top:6px">
                 <button class="demo-btn" onclick="shareQuestion('json','${repoKey}','${filePath}',${myIdx})">📤 Share</button>
                 <button class="demo-btn" onclick="copyQuestionLink('json','${repoKey}','${filePath}',${myIdx})">🔗 Copy Link</button>
-                <button class="demo-btn" onclick="toggleDownloadRow('dl_${qid}')">📥 Download</button>
-              </div>
-              <div class="dl-row" id="dl_${qid}">
-                <button class="demo-btn" onclick="downloadQuestionPDF('${qid}', true)">📄 With Answer</button>
-                <button class="demo-btn" onclick="downloadQuestionPDF('${qid}', false)">📄 Without Answer</button>
+                <button class="demo-btn" onclick="openDownloadModal('${qid}')">📥 Download</button>
               </div>
               <div class="teaser-blur-actions"></div>
             </div>
@@ -2161,26 +2179,40 @@
       if (row) row.classList.toggle('show');
     }
 
+    // PDF ke liye on-screen overlay (off-screen positioning se html2canvas blank capture karta hai, isliye ye tarika)
+    function buildPdfOverlay() {
+      const overlay = document.createElement('div');
+      overlay.id = 'pdfGenOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fff;overflow:auto;padding:24px;';
+      const note = document.createElement('div');
+      note.textContent = '📄 PDF बन रहा है...';
+      note.style.cssText = 'text-align:center;color:#4f46e5;font-weight:700;margin-bottom:14px;font-family:"Baloo 2",sans-serif;';
+      overlay.appendChild(note);
+      const inner = document.createElement('div');
+      inner.style.cssText = 'max-width:700px;margin:0 auto;font-family:Hind,sans-serif;';
+      overlay.appendChild(inner);
+      document.body.appendChild(overlay);
+      return { overlay, inner };
+    }
+
     // Ek single question ka PDF banana
     function downloadQuestionPDF(qid, withAnswer) {
       const data = qRegistry[qid];
       if (!data) return;
-      const container = document.createElement('div');
-      container.style.cssText = 'position:fixed;left:-9999px;top:0;width:700px;padding:24px;background:#fff;font-family:Hind,sans-serif;';
-      container.innerHTML = `
+      const { overlay, inner } = buildPdfOverlay();
+      inner.innerHTML = `
         <h3 style="font-family:'Baloo 2',sans-serif;color:#4f46e5;margin-bottom:12px">${QUIZ_NAME}</h3>
         <p style="font-size:14px;line-height:1.8;word-wrap:break-word"><strong>Q.</strong> ${data.question.replace(/\n/g, '<br>')}</p>
         ${withAnswer ? `<div style="font-size:13px;line-height:1.9;margin-top:14px;word-wrap:break-word"><strong>Answer:</strong><br><br>${data.answer.replace(/\n/g, '<br>')}</div>` : ''}
       `;
-      document.body.appendChild(container);
-      html2pdf().from(container).set({
+      html2pdf().from(inner).set({
         filename: `${qid}${withAnswer ? '_with_answer' : ''}.pdf`,
         margin: 10,
-        html2canvas: { scale: 2, useCORS: true, windowWidth: 700 },
+        html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       }).save().then(() => {
-        document.body.removeChild(container);
+        document.body.removeChild(overlay);
       });
     }
 
@@ -2188,29 +2220,27 @@
     function downloadFilePDF(withAnswer) {
       if (!currentFileData) return;
       const subjects = currentFileData[currentLang] || currentFileData.hi || [];
-      const container = document.createElement('div');
-      container.style.cssText = 'position:fixed;left:-9999px;top:0;width:700px;padding:24px;background:#fff;font-family:Hind,sans-serif;';
-      let inner = `<h2 style="font-family:'Baloo 2',sans-serif;color:#4f46e5">${currentFileData.id || QUIZ_NAME}</h2>`;
+      const { overlay, inner } = buildPdfOverlay();
+      let innerHtml = `<h2 style="font-family:'Baloo 2',sans-serif;color:#4f46e5">${currentFileData.id || QUIZ_NAME}</h2>`;
       subjects.forEach(sub => {
-        inner += `<h3 style="color:#3730a3;margin-top:16px">${sub.subject}</h3>`;
+        innerHtml += `<h3 style="color:#3730a3;margin-top:16px">${sub.subject}</h3>`;
         (sub.topics || []).forEach(topic => {
-          inner += `<h4 style="margin-top:10px">${topic.topicName}</h4>`;
+          innerHtml += `<h4 style="margin-top:10px">${topic.topicName}</h4>`;
           (topic.questions || []).forEach((q, i) => {
-            inner += `<p style="font-size:14px;line-height:1.8;margin-top:10px;word-wrap:break-word"><strong>Q${i + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</p>`;
-            if (withAnswer) inner += `<div style="font-size:13px;line-height:1.9;margin:8px 0 14px;word-wrap:break-word"><strong>Answer:</strong><br><br>${q.answer.replace(/\n/g, '<br>')}</div>`;
+            innerHtml += `<p style="font-size:14px;line-height:1.8;margin-top:10px;word-wrap:break-word"><strong>Q${i + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</p>`;
+            if (withAnswer) innerHtml += `<div style="font-size:13px;line-height:1.9;margin:8px 0 14px;word-wrap:break-word"><strong>Answer:</strong><br><br>${q.answer.replace(/\n/g, '<br>')}</div>`;
           });
         });
       });
-      container.innerHTML = inner;
-      document.body.appendChild(container);
-      html2pdf().from(container).set({
+      inner.innerHTML = innerHtml;
+      html2pdf().from(inner).set({
         filename: `${currentFileData.id || 'questions'}${withAnswer ? '_with_answer' : ''}.pdf`,
         margin: 10,
-        html2canvas: { scale: 2, useCORS: true, windowWidth: 700 },
+        html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       }).save().then(() => {
-        document.body.removeChild(container);
+        document.body.removeChild(overlay);
       });
     }
 
@@ -2236,7 +2266,7 @@
       const qIdx = params.get('q');
 
       if (localQid) {
-        renderQuestions(localQid); // sirf yehi ek question dikhega
+        renderQuestions(localQid);
         setTimeout(() => {
           const el = document.getElementById('item_' + localQid);
           if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2259,91 +2289,108 @@
         showMoreQPanel();
         enterRepoFolder(src, path);
       }
-      // ============================================================
-      // SUBMIT ANSWER
-      // ============================================================
-      function doSubmitAnswer(qid, qText) {
-        if (user.gender === 'Girl') {
-          const msg = encodeURIComponent(`📝 Answer Submit\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n\n❓ Question:\n${qText.substring(0, 250)}\n\n✍️ My Answer:\n[यहाँ answer लिखें या photo भेजें]`);
-          window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
-        } else {
-          window.open(BOYS_BOT, '_blank');
-        }
+    }
+
+    // ============================================================
+    // SUBMIT ANSWER
+    // ============================================================
+    function doSubmitAnswer(qid, qText) {
+      if (user.gender === 'Girl') {
+        const msg = encodeURIComponent(`📝 Answer Submit\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n\n❓ Question:\n${qText.substring(0, 250)}\n\n✍️ My Answer:\n[यहाँ answer लिखें या photo भेजें]`);
+        window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
+      } else {
+        window.open(BOYS_BOT, '_blank');
       }
-      function doSubmitAll() {
-        if (user.gender === 'Girl') {
-          const msg = encodeURIComponent(`📚 All Answers Submit\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n🚻 Gender: ${user.gender}\n\n[सभी answers यहाँ लिखें या photos भेजें]`);
-          window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
-        } else {
-          window.open(BOYS_BOT, '_blank');
-        }
+    }
+    function doSubmitAll() {
+      if (user.gender === 'Girl') {
+        const msg = encodeURIComponent(`📚 All Answers Submit\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n🚻 Gender: ${user.gender}\n\n[सभी answers यहाँ लिखें या photos भेजें]`);
+        window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
+      } else {
+        window.open(BOYS_BOT, '_blank');
       }
-      function openWaGroup() {
-        if (!isLoggedIn) {
-          pendingAction = 'waGroup';
-          if (user.name && user.mobile && user.gender) {
-            wrongAttempts = 0;
-            openPasswordModal();
-          } else {
-            openModal('regModal');
-          }
-          return false;
+    }
+    function openWaGroup() {
+      if (!isLoggedIn) {
+        pendingAction = 'waGroup';
+        if (user.name && user.mobile && user.gender) {
+          wrongAttempts = 0;
+          openPasswordModal();
+        } else {
+          openModal('regModal');
         }
-        doOpenWaGroup();
         return false;
       }
-      function doOpenWaGroup() {
-        if (user.gender === 'Girl') {
-          const msg = encodeURIComponent(`📚 Answer Writing Group Join Request\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n🚻 Gender: ${user.gender}\n\nMujhe Girls UPSC Answer Writing Group mein add karein`);
-          window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
-        } else {
-          window.open('https://chat.whatsapp.com/CElwHrE2iMbI3Y3GNVMzq3', '_blank');
-        }
-      }
-
-      // ============================================================
-      // TELEGRAM TRACKING
-      // ============================================================
-      async function track(data) {
-        try {
-          await fetch(SCRIPT_URL, {
-            method: 'POST', headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify(data)
-          });
-        } catch (e) { }
-      }
-
-      // ============================================================
-      // SCROLL → show FAB after first 2 questions
-      // ============================================================
-      function setupFAB() {
-        if (isLoggedIn) return;
-        const fab = document.getElementById('fab');
-        let shown = false;
-        window.addEventListener('scroll', () => {
-          if (document.getElementById('moreQWrap').style.display === 'block') return; // More Questions page pr FAB nahi dikhna chahiye
-          if (isLoggedIn) { fab.style.display = 'none'; return; }
-          if (window.scrollY > 120 && !shown) { shown = true; fab.style.display = 'flex'; }
-        });
-      }
-
-      // ============================================================
-      // INIT
-      // ============================================================
-      if (questionsData.length === 0) {
-        // Local questions na ho to seedha "More Questions" wala page khul jaye — Close button ki zarurat nahi
-        document.getElementById('moreQCloseBtn').style.display = 'none';
-        document.getElementById('homeShareArea').style.display = 'block';
-        openMoreQuestions();
-      } else {
-        renderQuestions();
-        setupFAB();
-      }
-      updateAvatarBtn();
-      updateWaLink();
-      updateLangFabLabel();
-      handleDeepLink();
+      doOpenWaGroup();
+      return false;
     }
+    function doOpenWaGroup() {
+      if (user.gender === 'Girl') {
+        const msg = encodeURIComponent(`📚 Answer Writing Group Join Request\n\n📚 Quiz: ${QUIZ_NAME}\n👤 Name: ${user.name}\n📱 Mobile: ${user.mobile}\n🚻 Gender: ${user.gender}\n\nMujhe Girls UPSC Answer Writing Group mein add karein`);
+        window.open(`https://wa.me/${MY_WA_NO}?text=${msg}`, '_blank');
+      } else {
+        window.open('https://chat.whatsapp.com/CElwHrE2iMbI3Y3GNVMzq3', '_blank');
+      }
+    }
+
+    // ============================================================
+    // TELEGRAM TRACKING
+    // ============================================================
+    async function track(data) {
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST', headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(data)
+        });
+      } catch (e) { }
+    }
+
+    // ============================================================
+    // SCROLL → show FAB after first 2 questions
+    // ============================================================
+    function setupFAB() {
+      if (isLoggedIn) return;
+      const fab = document.getElementById('fab');
+      let shown = false;
+      window.addEventListener('scroll', () => {
+        if (document.getElementById('moreQWrap').style.display === 'block') return;
+        if (isLoggedIn) { fab.style.display = 'none'; return; }
+        if (window.scrollY > 120 && !shown) { shown = true; fab.style.display = 'flex'; }
+      });
+    }
+
+    // ============================================================
+    // DOWNLOAD PDF — modal popup (With Answer / Without Answer)
+    // ============================================================
+    let dlTarget = null; // qid ya 'file'
+    function openDownloadModal(target) {
+      dlTarget = target;
+      openModal('dlModal');
+    }
+    document.getElementById('dlWithAnsBtn').onclick = function () {
+      closeModal('dlModal');
+      if (dlTarget === 'file') downloadFilePDF(true); else downloadQuestionPDF(dlTarget, true);
+    };
+    document.getElementById('dlWithoutAnsBtn').onclick = function () {
+      closeModal('dlModal');
+      if (dlTarget === 'file') downloadFilePDF(false); else downloadQuestionPDF(dlTarget, false);
+    };
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    if (questionsData.length === 0) {
+      document.getElementById('moreQCloseBtn').style.display = 'none';
+      document.getElementById('homeShareArea').style.display = 'block';
+      openMoreQuestions();
+    } else {
+      renderQuestions();
+      setupFAB();
+    }
+    updateAvatarBtn();
+    updateWaLink();
+    updateLangFabLabel();
+    handleDeepLink();
   </script>
 </body>
 
