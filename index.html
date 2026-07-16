@@ -1623,7 +1623,7 @@
             const teaser = !isLoggedIn && myIdx < FREE_Q;
             const lockedCls = locked ? 'locked' : '';
             const teaserCls = teaser ? 'teaser' : '';
-            const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
+            const safeQ = q.question.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
             topicHtml += `
         <div class="q-item ${lockedCls} ${teaserCls}" id="item_${qid}">
           <div class="lock-overlay" onclick="onProtectedAction('seeAll')">
@@ -2056,7 +2056,7 @@
             const jTeaser = !isLoggedIn && myIdx < FREE_Q;
             const jLockedCls = jLocked ? 'locked' : '';
             const jTeaserCls = jTeaser ? 'teaser' : '';
-            const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
+            const safeQ = q.question.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
             qRegistry[qid] = { question: q.question, answer: q.answer };
             topicHtml += `
         <div class="q-item ${jLockedCls} ${jTeaserCls}" id="item_${qid}">
@@ -2208,7 +2208,7 @@
       html2pdf().from(inner).set({
         filename: `${qid}${withAnswer ? '_with_answer' : ''}.pdf`,
         margin: 10,
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { scale: 2, useCORS: true, foreignObjectRendering: true },
         jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       }).save().then(() => {
@@ -2233,16 +2233,19 @@
         });
       });
       inner.innerHTML = innerHtml;
-      html2pdf().from(inner).set({
-        filename: `${currentFileData.id || 'questions'}${withAnswer ? '_with_answer' : ''}.pdf`,
-        margin: 10,
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      }).save().then(() => {
-        document.body.removeChild(overlay);
+      document.fonts.ready.then(() => {
+        html2pdf().from(inner).set({
+          filename: `${currentFileData.id || 'questions'}${withAnswer ? '_with_answer' : ''}.pdf`,
+          margin: 10,
+          html2canvas: { scale: 2, useCORS: true, foreignObjectRendering: true },
+          jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        }).save().then(() => {
+          document.body.removeChild(overlay);
+        });
       });
     }
+
 
     // Generic — kisi bhi ready-made link ko share/copy karna (folder pages ke liye)
     function shareLink(link) {
