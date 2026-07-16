@@ -765,6 +765,76 @@
       font-size: 11.5px;
       font-weight: 700;
     }
+
+    /* TIMER SYSTEM */
+    .q-timer-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+    }
+
+    .timer-btn {
+      padding: 7px 14px;
+      background: var(--accent);
+      color: #1e1b4b;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Hind', sans-serif;
+    }
+
+    .timer-btn:hover {
+      background: #d97706;
+    }
+
+    .timer-display {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+
+    .q-item.timer-active {
+      box-shadow: 0 0 0 3px var(--accent) !important;
+    }
+
+    .q-item.timer-ended {
+      background: #fee2e2 !important;
+    }
+
+    .q-item.timer-ended .q-header {
+      background: #fee2e2 !important;
+    }
+
+    .file-timer-bar {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 10px rgba(79, 70, 229, .08);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .file-timer-bar.timer-active {
+      box-shadow: 0 0 0 3px var(--accent);
+    }
+
+    .file-timer-bar.timer-ended {
+      background: #fee2e2;
+    }
+
+    .mq-share-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
   </style>
 </head>
 
@@ -1425,7 +1495,7 @@
             const qid = `q${si}_${ti}_${qi}`;
             const locked = !isLoggedIn && globalIdx >= FREE_Q;
             const lockedCls = locked ? 'locked' : '';
-           const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
+            const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
             html += `
         <div class="q-item ${lockedCls}" id="item_${qid}">
           <div class="lock-overlay" onclick="onProtectedAction('seeAll')">
@@ -1434,6 +1504,7 @@
           <div class="q-header">
             ${buildQMetaHtml(q)}
             <div class="q-text"><strong>Q${globalIdx + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
+            ${buildQTimerRow(qid, q)}
           <div class="q-actions">
               <button class="demo-btn" onclick="onProtectedAction('demo','${qid}')">👁 See Demo Answer</button>
               <button class="submit-btn" onclick="onProtectedAction('submit','${qid}','${safeQ}')">📤 Submit Answer</button>
@@ -1551,13 +1622,24 @@
       return { html, hasContent: folders.length > 0 || files.length > 0 };
     }
 
+    // Is folder-listing page ko share/copy karne ka bar — link kholte hi wahi folder view khulega
+    function folderShareBarHtml(repoKey, path) {
+      const params = repoKey ? `?src=${repoKey}&path=${encodeURIComponent(path)}` : `?src=root`;
+      const link = `${location.origin}${location.pathname}${params}`;
+      return `
+      <div class="mq-share-bar">
+        <button class="demo-btn" onclick="shareLink('${link.replace(/'/g, "\\'")}')">📤 Share This Page</button>
+        <button class="demo-btn" onclick="copyLinkDirect('${link.replace(/'/g, "\\'")}')">🔗 Copy Link</button>
+      </div>`;
+    }
+
     // Root — dono repos ke top-level folders/files ek hi combined list me (repo ka naam khud folder ki tarah nahi dikhta)
     async function renderMoreQRoot() {
       document.getElementById('moreQCrumb').textContent = '📂 More Questions';
       const box = document.getElementById('moreQBody');
       box.innerHTML = '<div class="mq-loading">Loading...</div>';
 
-      let html = '';
+      let html = folderShareBarHtml(null, '');
       let anyContent = false;
       for (const repo of JSON_REPOS) {
         try {
@@ -1571,7 +1653,7 @@
         } catch (e) { }
       }
 
-      box.innerHTML = anyContent ? html : '<div class="mq-empty">Kuch nahi mila</div>';
+      box.innerHTML = anyContent ? html : (html + '<div class="mq-empty">Kuch nahi mila</div>');
     }
 
     async function enterRepoFolder(repoKey, path) {
@@ -1587,7 +1669,8 @@
         if (!Array.isArray(items)) { box.innerHTML = '<div class="mq-empty">Yaha kuch nahi mila</div>'; return; }
 
         const result = await buildFolderListHtml(repo, items, path);
-        box.innerHTML = result.hasContent ? result.html : (result.html + '<div class="mq-empty">Yaha kuch nahi hai</div>');
+        const shareBar = folderShareBarHtml(repoKey, path);
+        box.innerHTML = shareBar + (result.hasContent ? result.html : (result.html + '<div class="mq-empty">Yaha kuch nahi hai</div>'));
       } catch (e) {
         box.innerHTML = '<div class="mq-empty">Load nahi ho paaya</div>';
       }
@@ -1610,7 +1693,6 @@
         box.innerHTML = '<div class="mq-empty">JSON load nahi ho paaya</div>';
       }
     }
-
     // Question ke meta badges — Time / Marks / Word Limit (jo bhi JSON me diya ho)
     function buildQMetaHtml(q) {
       const parts = [];
@@ -1621,10 +1703,141 @@
       return `<div class="q-meta">${parts.map(p => `<span class="q-meta-pill">${p}</span>`).join('')}</div>`;
     }
 
+    // ============================================================
+    // TIMER SYSTEM — question-wise aur poori JSON file ke liye
+    // ============================================================
+    let activeTimer = null; // ek time pr sirf ek hi timer chalega
+
+    function parseMinutesFromTime(timeStr) {
+      if (!timeStr) return 0;
+      const m = timeStr.toString().match(/(\d+)/);
+      return m ? parseInt(m[1]) : 0;
+    }
+
+    function formatMMSS(totalSeconds) {
+      const s = Math.max(totalSeconds, 0);
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+
+    function sanitizeIdPart(str) {
+      return String(str).replace(/[^a-zA-Z0-9]/g, '_');
+    }
+
+    // Question ke liye "Start Timer" button + live countdown ki row banana
+    function buildQTimerRow(qid, q) {
+      const minutes = parseMinutesFromTime(q.time);
+      if (!minutes) return '';
+      return `
+      <div class="q-timer-row" id="timerRow_${qid}">
+        <button class="timer-btn" id="timerBtn_${qid}" onclick="toggleQuestionTimer('${qid}', ${minutes})">▶ Start Timer</button>
+        <span class="timer-display" id="timerDisplay_${qid}">${formatMMSS(minutes * 60)}</span>
+      </div>`;
+    }
+
+    // Naya timer shuru/pause/resume karna — id se pata chalta hai konsa timer hai
+    function startOrToggleTimer(id, seconds, displayElId, cardElId, btnElId, hooks) {
+      hooks = hooks || {};
+
+      // Koi aur timer chal/pause raha ho to use reset karke hata do
+      if (activeTimer && activeTimer.id !== id) {
+        clearInterval(activeTimer.interval);
+        const prevCard = document.getElementById(activeTimer.cardElId);
+        if (prevCard) prevCard.classList.remove('timer-active');
+        const prevDisplay = document.getElementById(activeTimer.displayElId);
+        if (prevDisplay) prevDisplay.textContent = formatMMSS(activeTimer.originalSeconds);
+        const prevBtn = document.getElementById(activeTimer.btnElId);
+        if (prevBtn) prevBtn.textContent = '▶ Start Timer';
+        if (activeTimer.hooks.onStop) activeTimer.hooks.onStop();
+        activeTimer = null;
+      }
+
+      // Same timer pe dobara click — pause/resume
+      if (activeTimer && activeTimer.id === id) {
+        if (activeTimer.running) {
+          clearInterval(activeTimer.interval);
+          activeTimer.running = false;
+          document.getElementById(btnElId).textContent = '▶ Resume';
+        } else {
+          activeTimer.running = true;
+          document.getElementById(btnElId).textContent = '⏸ Pause';
+          activeTimer.interval = setInterval(() => tickTimer(id), 1000);
+        }
+        return;
+      }
+
+      // Bilkul naya timer
+      if (hooks.beforeStart) hooks.beforeStart();
+      const card = document.getElementById(cardElId);
+      if (card) { card.classList.remove('timer-ended'); card.classList.add('timer-active'); }
+      document.getElementById(btnElId).textContent = '⏸ Pause';
+
+      activeTimer = {
+        id, remaining: seconds, originalSeconds: seconds,
+        displayElId, cardElId, btnElId, hooks,
+        running: true,
+        interval: setInterval(() => tickTimer(id), 1000)
+      };
+    }
+
+    function tickTimer(id) {
+      if (!activeTimer || activeTimer.id !== id) return;
+      activeTimer.remaining--;
+      const display = document.getElementById(activeTimer.displayElId);
+      if (display) display.textContent = formatMMSS(activeTimer.remaining);
+
+      if (activeTimer.remaining <= 0) {
+        clearInterval(activeTimer.interval);
+        const card = document.getElementById(activeTimer.cardElId);
+        if (card) { card.classList.remove('timer-active'); card.classList.add('timer-ended'); }
+        const btn = document.getElementById(activeTimer.btnElId);
+        if (btn) btn.textContent = '✓ Time Up';
+        if (activeTimer.hooks.onFinish) activeTimer.hooks.onFinish();
+        ringAlarm();
+        activeTimer = null;
+      }
+    }
+
+    // 5 second alarm — Web Audio API se, koi external audio file nahi chahiye
+    function ringAlarm() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        let t = ctx.currentTime;
+        const endTime = t + 5;
+        while (t < endTime) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.frequency.value = 880;
+          osc.connect(gain); gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.start(t); osc.stop(t + 0.4);
+          t += 0.5;
+        }
+      } catch (e) { }
+    }
+
+    // Ek single question ka timer start/pause karna
+    function toggleQuestionTimer(qid, minutes) {
+      startOrToggleTimer('q_' + qid, minutes * 60, `timerDisplay_${qid}`, `item_${qid}`, `timerBtn_${qid}`, {});
+    }
+
+    // Poori JSON file ka total timer — chalu hote hi individual question timers chhup jaate hain
+    function toggleFileTimer(fileKey, totalMinutes) {
+      startOrToggleTimer('file_' + fileKey, totalMinutes * 60, `fileTimerDisplay_${fileKey}`, `fileTimerCard_${fileKey}`, `fileTimerBtn_${fileKey}`, {
+        beforeStart: () => { document.querySelectorAll('.q-timer-row').forEach(el => el.style.display = 'none'); },
+        onStop: () => { document.querySelectorAll('.q-timer-row').forEach(el => el.style.display = 'flex'); },
+        onFinish: () => { document.querySelectorAll('.q-timer-row').forEach(el => el.style.display = 'flex'); }
+      });
+    }
+  
+
     function renderJsonQuestions(subjects, repoKey, filePath, focusQIdx) {
       const box = document.getElementById('moreQBody');
       const parentPath = filePath.split('/').slice(0, -1).join('/');
       const singleMode = (focusQIdx !== undefined && focusQIdx !== null && !isNaN(focusQIdx));
+      const fileKey = sanitizeIdPart(repoKey + '_' + filePath);
 
       let html = `<div class="mq-folder mq-back" onclick="enterRepoFolder('${repoKey}','${parentPath}')">⬅ Back</div>`;
 
@@ -1634,6 +1847,20 @@
           <button class="demo-btn" onclick="shareAllQuestions('${repoKey}','${filePath}')">📤 Share All Questions</button>
           <button class="demo-btn" onclick="copyAllQuestionsLink('${repoKey}','${filePath}')">🔗 Copy All Link</button>
         </div>`;
+
+        // Poori file ka total time — sabhi questions ke time ka sum
+        let totalMinutes = 0;
+        subjects.forEach(sub => (sub.topics || []).forEach(topic => (topic.questions || []).forEach(q => {
+          totalMinutes += parseMinutesFromTime(q.time);
+        })));
+        if (totalMinutes > 0) {
+          html += `
+        <div class="file-timer-bar" id="fileTimerCard_${fileKey}">
+          <strong>🕐 Total Time: ${totalMinutes} min</strong>
+          <button class="timer-btn" id="fileTimerBtn_${fileKey}" onclick="toggleFileTimer('${fileKey}', ${totalMinutes})">▶ Start Full Test Timer</button>
+          <span class="timer-display" id="fileTimerDisplay_${fileKey}">${formatMMSS(totalMinutes * 60)}</span>
+        </div>`;
+        }
       }
 
       let idx = 0;
@@ -1655,6 +1882,7 @@
           <div class="q-header">
             ${buildQMetaHtml(q)}
             <div class="q-text"><strong>Q.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
+            ${buildQTimerRow(qid, q)}
             <div class="q-actions">
               <button class="demo-btn" onclick="onProtectedAction('demo','${qid}')">👁 See Demo Answer</button>
               <button class="submit-btn" onclick="onProtectedAction('submit','${qid}','${safeQ}')">📤 Submit Answer</button>
@@ -1738,12 +1966,26 @@
         prompt('Link copy karein:', link);
       });
     }
-    // URL me ?local=... ya ?src=...&file=...&q=... ho to seedha wahi question khol do
+
+    // Generic — kisi bhi ready-made link ko share/copy karna (folder pages ke liye)
+    function shareLink(link) {
+      const msg = encodeURIComponent(`📚 ${QUIZ_NAME}\n\n${link}`);
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
+    }
+    function copyLinkDirect(link) {
+      navigator.clipboard.writeText(link).then(() => {
+        alert('Link copy ho gaya ✅');
+      }).catch(() => {
+        prompt('Link copy karein:', link);
+      });
+    }
+    // URL me ?local=... ya ?src=...&file=...&q=... ya ?src=...&path=... ho to seedha wahi page khol do
     function handleDeepLink() {
       const params = new URLSearchParams(location.search);
       const localQid = params.get('local');
       const src = params.get('src');
       const file = params.get('file');
+      const path = params.get('path');
       const qIdx = params.get('q');
 
       if (localQid) {
@@ -1760,6 +2002,17 @@
       if (src && file) {
         openMoreQuestions();
         openJsonFile(src, file, qIdx !== null ? parseInt(qIdx) : null);
+        return;
+      }
+
+      if (src === 'root') {
+        openMoreQuestions();
+        return;
+      }
+
+      if (src && path !== null) {
+        openMoreQuestions();
+        enterRepoFolder(src, path);
       }
     }
 
@@ -1825,6 +2078,7 @@
       const fab = document.getElementById('fab');
       let shown = false;
       window.addEventListener('scroll', () => {
+        if (document.getElementById('moreQWrap').style.display === 'block') return; // More Questions page pr FAB nahi dikhna chahiye
         if (isLoggedIn) { fab.style.display = 'none'; return; }
         if (window.scrollY > 120 && !shown) { shown = true; fab.style.display = 'flex'; }
       });
@@ -1833,7 +2087,7 @@
     // ============================================================
     // INIT
     // ============================================================
- if (questionsData.length === 0) {
+    if (questionsData.length === 0) {
       // Local questions na ho to seedha "More Questions" wala page khul jaye — Close button ki zarurat nahi
       document.getElementById('moreQCloseBtn').style.display = 'none';
       document.getElementById('homeShareArea').style.display = 'block';
