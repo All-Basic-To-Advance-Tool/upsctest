@@ -829,11 +829,67 @@
       background: #fee2e2;
     }
 
-    .mq-share-bar {
+.mq-share-bar {
       display: flex;
       gap: 8px;
       margin-bottom: 12px;
       flex-wrap: wrap;
+    }
+
+    /* TEASER PREVIEW — free questions par bhi partial blur + lock */
+    .q-item.teaser .q-header {
+      position: relative;
+    }
+
+    .teaser-text-wrap,
+    .teaser-actions-wrap {
+      position: relative;
+    }
+
+    .q-item.teaser .teaser-text-wrap .teaser-blur-text {
+      position: absolute;
+      inset: 0;
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 30%, black 100%);
+      mask-image: linear-gradient(to right, transparent 0%, transparent 30%, black 100%);
+      pointer-events: none;
+    }
+
+    .q-item.teaser .teaser-actions-wrap .teaser-blur-actions {
+      position: absolute;
+      inset: 0;
+      -webkit-backdrop-filter: blur(1.5px);
+      backdrop-filter: blur(1.5px);
+      background: rgba(255, 255, 255, .2);
+      pointer-events: none;
+      border-radius: 8px;
+    }
+
+    .q-item.teaser .teaser-actions-wrap button {
+      pointer-events: none;
+    }
+
+    .teaser-lock {
+      display: none;
+    }
+
+    .q-item.teaser .teaser-lock {
+      display: flex;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      font-size: 16px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, .4);
     }
   </style>
 </head>
@@ -1494,24 +1550,33 @@
           topic.questions.forEach((q, qi) => {
             const qid = `q${si}_${ti}_${qi}`;
             const locked = !isLoggedIn && globalIdx >= FREE_Q;
+            const teaser = !isLoggedIn && globalIdx < FREE_Q;
             const lockedCls = locked ? 'locked' : '';
+            const teaserCls = teaser ? 'teaser' : '';
             const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
             html += `
-        <div class="q-item ${lockedCls}" id="item_${qid}">
+        <div class="q-item ${lockedCls} ${teaserCls}" id="item_${qid}">
           <div class="lock-overlay" onclick="onProtectedAction('seeAll')">
             <span class="lock-pill">🔒 See All Questions पर Click करें</span>
           </div>
           <div class="q-header">
+            <div class="teaser-lock" onclick="onProtectedAction('seeAll')">🔒</div>
             ${buildQMetaHtml(q)}
-            <div class="q-text"><strong>Q${globalIdx + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
-            ${buildQTimerRow(qid, q)}
-          <div class="q-actions">
-              <button class="demo-btn" onclick="onProtectedAction('demo','${qid}')">👁 See Demo Answer</button>
-              <button class="submit-btn" onclick="onProtectedAction('submit','${qid}','${safeQ}')">📤 Submit Answer</button>
+            <div class="teaser-text-wrap">
+              <div class="q-text"><strong>Q${globalIdx + 1}.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
+              <div class="teaser-blur-text"></div>
             </div>
-            <div class="q-actions" style="margin-top:6px">
-              <button class="demo-btn" onclick="shareQuestion('local','${qid}')">📤 Share</button>
-              <button class="demo-btn" onclick="copyQuestionLink('local','${qid}')">🔗 Copy Link</button>
+            ${buildQTimerRow(qid, q)}
+            <div class="teaser-actions-wrap">
+              <div class="q-actions">
+                <button class="demo-btn" onclick="onProtectedAction('demo','${qid}')">👁 See Demo Answer</button>
+                <button class="submit-btn" onclick="onProtectedAction('submit','${qid}','${safeQ}')">📤 Submit Answer</button>
+              </div>
+              <div class="q-actions" style="margin-top:6px">
+                <button class="demo-btn" onclick="shareQuestion('local','${qid}')">📤 Share</button>
+                <button class="demo-btn" onclick="copyQuestionLink('local','${qid}')">🔗 Copy Link</button>
+              </div>
+              <div class="teaser-blur-actions"></div>
             </div>
           </div>
           <div class="demo-answer" id="ans_${qid}">
@@ -1539,9 +1604,12 @@
       }
     }
 
-    function unlockAllQuestions() {
+function unlockAllQuestions() {
       document.querySelectorAll('.q-item.locked').forEach(el => {
         el.classList.remove('locked');
+      });
+      document.querySelectorAll('.q-item.teaser').forEach(el => {
+        el.classList.remove('teaser');
       });
       document.getElementById('fab').style.display = 'none';
       updateWaLink();
@@ -1871,25 +1939,39 @@
           let topicHtml = `<div class="topic-block"><div class="topic-name">📌 ${topic.topicName}</div>`;
           let topicHasContent = false;
           (topic.questions || []).forEach(q => {
-            const myIdx = idx;
+           const myIdx = idx;
             idx++;
             if (singleMode && myIdx !== focusQIdx) return; // sirf yehi ek question dikhega
             topicHasContent = true;
             const qid = `mq_${myIdx}`;
+            const jLocked = !isLoggedIn && myIdx >= FREE_Q;
+            const jTeaser = !isLoggedIn && myIdx < FREE_Q;
+            const jLockedCls = jLocked ? 'locked' : '';
+            const jTeaserCls = jTeaser ? 'teaser' : '';
             const safeQ = q.question.replace(/'/g, '&apos;').replace(/\n/g, ' ');
             topicHtml += `
-        <div class="q-item" id="item_${qid}">
+        <div class="q-item ${jLockedCls} ${jTeaserCls}" id="item_${qid}">
+          <div class="lock-overlay" onclick="onProtectedAction('seeAll')">
+            <span class="lock-pill">🔒 See All Questions पर Click करें</span>
+          </div>
           <div class="q-header">
+            <div class="teaser-lock" onclick="onProtectedAction('seeAll')">🔒</div>
             ${buildQMetaHtml(q)}
-            <div class="q-text"><strong>Q.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
-            ${buildQTimerRow(qid, q)}
-            <div class="q-actions">
-              <button class="demo-btn" onclick="onProtectedAction('demo','${qid}')">👁 See Demo Answer</button>
-              <button class="submit-btn" onclick="onProtectedAction('submit','${qid}','${safeQ}')">📤 Submit Answer</button>
+            <div class="teaser-text-wrap">
+              <div class="q-text"><strong>Q.</strong> ${q.question.replace(/\n/g, '<br>')}</div>
+              <div class="teaser-blur-text"></div>
             </div>
-            <div class="q-actions" style="margin-top:6px">
-              <button class="demo-btn" onclick="shareQuestion('json','${repoKey}','${filePath}',${myIdx})">📤 Share</button>
-              <button class="demo-btn" onclick="copyQuestionLink('json','${repoKey}','${filePath}',${myIdx})">🔗 Copy Link</button>
+            ${buildQTimerRow(qid, q)}
+            <div class="teaser-actions-wrap">
+              <div class="q-actions">
+                <button class="demo-btn" onclick="onProtectedAction('demo','${qid}')">👁 See Demo Answer</button>
+                <button class="submit-btn" onclick="onProtectedAction('submit','${qid}','${safeQ}')">📤 Submit Answer</button>
+              </div>
+              <div class="q-actions" style="margin-top:6px">
+                <button class="demo-btn" onclick="shareQuestion('json','${repoKey}','${filePath}',${myIdx})">📤 Share</button>
+                <button class="demo-btn" onclick="copyQuestionLink('json','${repoKey}','${filePath}',${myIdx})">🔗 Copy Link</button>
+              </div>
+              <div class="teaser-blur-actions"></div>
             </div>
           </div>
           <div class="demo-answer" id="ans_${qid}">
