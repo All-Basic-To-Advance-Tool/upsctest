@@ -2991,7 +2991,8 @@
       margin-bottom: 5px;
     }
 
-    .page-section-text p, .page-section-text li {
+    .page-section-text p,
+    .page-section-text li {
       color: #b0bcd4;
       font-size: 0.85rem;
       line-height: 1.7;
@@ -3124,6 +3125,38 @@
 
     .ga-status.success {
       color: var(--correct);
+    }
+
+    .ban-chat-bubble {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      max-width: 90%;
+      animation: popIn .25s ease;
+    }
+
+    .ban-chat-bubble.admin {
+      background: #1e2d4a;
+      border: 1px solid var(--accent2);
+      color: var(--text);
+      align-self: flex-start;
+    }
+
+    .ban-chat-bubble.user {
+      background: #21253a;
+      border: 1px solid var(--border);
+      color: var(--text);
+      align-self: flex-end;
+    }
+
+    .ban-chat-tag {
+      font-size: 0.72rem;
+      color: var(--gold);
+      border-left: 2px solid var(--gold);
+      padding-left: 6px;
+      margin-bottom: 6px;
+      opacity: 0.85;
     }
   </style>
 </head>
@@ -3335,7 +3368,10 @@
   <!-- ══ PAGE CONTENT SCREEN (Contact/Privacy/Terms/Refund/About/Pricing) ══ -->
   <div class="screen" id="screenPageContent">
     <button class="page-back-btn" onclick="closeLegalPage()">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
       वापस जाएं
     </button>
     <div id="pageContentWrap"></div>
@@ -3358,31 +3394,58 @@
 
   <!-- ══ MENU FAB (Pages: Contact/Privacy/Terms/Refund/About/Pricing) ══ -->
   <div class="menu-fab" id="menuFab" onclick="toggleMenuDropdown(event)">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
   </div>
   <div class="menu-dropdown" id="menuDropdown">
     <button class="menu-item" onclick="openLegalPage('contact')">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z">
+        </path>
+      </svg>
       Contact Us
     </button>
     <button class="menu-item" onclick="openLegalPage('privacy')">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+      </svg>
       Privacy Policy
     </button>
     <button class="menu-item" onclick="openLegalPage('terms')">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+      </svg>
       Terms &amp; Conditions
     </button>
     <button class="menu-item" onclick="openLegalPage('refund')">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
       Cancellation &amp; Refund
     </button>
     <button class="menu-item" onclick="openLegalPage('about')">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
       About Us
     </button>
     <button class="menu-item" onclick="openLegalPage('pricing')">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L3 3v6.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l5-5a2 2 0 0 0 0-2.83z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24L3 3v6.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.83 0l5-5a2 2 0 0 0 0-2.83z">
+        </path>
+        <line x1="7" y1="7" x2="7.01" y2="7"></line>
+      </svg>
       Pricing / Plans
     </button>
   </div>
@@ -3400,7 +3463,20 @@
   <div class="google-auth-overlay" id="googleAuthOverlay">
     <div class="google-auth-card">
       <div class="ga-icon-circle">
-        <svg viewBox="0 0 48 48" width="28" height="28"><path fill="#FFC107" d="M43.6 20.5H42V20.4H24v7.2h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.1-5.1C33.6 6.1 29 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z"></path><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.1-5.1C33.6 6.1 29 4 24 4c-7.7 0-14.3 4.4-17.7 10.7z"></path><path fill="#4CAF50" d="M24 44c4.9 0 9.4-1.9 12.8-4.9l-5.9-5c-2 1.4-4.6 2.2-6.9 2.2-5.3 0-9.7-3.4-11.3-8l-6.6 5.1C9.6 39.6 16.2 44 24 44z"></path><path fill="#1976D2" d="M43.6 20.5H42V20.4H24v7.2h11.3c-.8 2.3-2.2 4.2-4.1 5.6l5.9 5C40.5 35.1 44 30 44 24c0-1.2-.1-2.4-.4-3.5z"></path></svg>
+        <svg viewBox="0 0 48 48" width="28" height="28">
+          <path fill="#FFC107"
+            d="M43.6 20.5H42V20.4H24v7.2h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.1-5.1C33.6 6.1 29 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.4-.4-3.5z">
+          </path>
+          <path fill="#FF3D00"
+            d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.1-5.1C33.6 6.1 29 4 24 4c-7.7 0-14.3 4.4-17.7 10.7z">
+          </path>
+          <path fill="#4CAF50"
+            d="M24 44c4.9 0 9.4-1.9 12.8-4.9l-5.9-5c-2 1.4-4.6 2.2-6.9 2.2-5.3 0-9.7-3.4-11.3-8l-6.6 5.1C9.6 39.6 16.2 44 24 44z">
+          </path>
+          <path fill="#1976D2"
+            d="M43.6 20.5H42V20.4H24v7.2h11.3c-.8 2.3-2.2 4.2-4.1 5.6l5.9 5C40.5 35.1 44 30 44 24c0-1.2-.1-2.4-.4-3.5z">
+          </path>
+        </svg>
       </div>
       <h2>Continue with Google</h2>
       <p>Verify your email using your Google account to continue.</p>
@@ -3412,6 +3488,40 @@
       <div class="ga-status success" id="gaSuccessStatus">
         <span>✓</span>
         <span>Verified — continuing...</span>
+      </div>
+    </div>
+  </div>
+
+<!-- ══ BANNED SCREEN ══ -->
+  <div class="screen" id="screenBanned">
+    <div class="screen-card" style="max-width:460px;border-color:#ef4444;">
+      <span class="bc-top"></span><span class="bc-right"></span><span class="bc-bottom"></span><span class="bc-left"></span>
+      <div style="text-align:center;font-size:3rem;margin-bottom:10px;">🚫</div>
+      <div class="screen-title" style="color:#ef4444;">You are banned by admin.</div>
+      <div class="screen-sub">आपको इस टेस्ट को attempt करने से रोक दिया गया है</div>
+      <div id="banReasonBox" style="display:none;background:#2d0d0d;border:1px solid #ef4444;border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;color:#fca5a5;font-size:0.8rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Reason</div>
+        <div id="banReasonText" style="color:var(--text);font-size:0.9rem;line-height:1.6;"></div>
+      </div>
+      <div id="banNameBox" style="display:none;" class="form-group">
+        <label class="form-label">✏️ Naya Naam Bharen</label>
+        <input class="form-input" id="banNameInput" type="text" placeholder="अपना सही नाम लिखें">
+      </div>
+      <div id="banMobileBox" style="display:none;" class="form-group">
+        <label class="form-label">📱 Naya Mobile Number Bharen</label>
+        <input class="form-input" id="banMobileInput" type="tel" maxlength="10" placeholder="10-digit number">
+      </div>
+      <button id="banUpdateBtn" onclick="submitBanNameMobile()" class="btn-primary" style="display:none;">Update Bhejein →</button>
+      <div id="banUpdateStatus" style="text-align:center;font-size:0.8rem;color:var(--correct);margin-top:8px;"></div>
+      <button id="banRequestBtn" onclick="requestUnban()" class="btn-primary" style="display:none;margin-top:16px;background:var(--accent2);">🔓 Request to Unban</button>
+      <div id="banAlreadyReq" style="display:none;text-align:center;color:var(--accent2);font-size:0.82rem;margin-top:10px;font-family:'Rajdhani',sans-serif;font-weight:700;">✅ Aapki Unban Request bheji jaa chuki hai</div>
+      <div id="banChatWrap" style="display:none;margin-top:18px;border-top:1px solid var(--border);padding-top:16px;">
+        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--gold);font-size:0.85rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">💬 Admin से बात करें</div>
+        <div id="banChatMessages" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+        <div style="display:flex;gap:8px;">
+          <input class="form-input" id="banChatInput" type="text" placeholder="अपना message लिखें..." style="flex:1;" onkeydown="if(event.key==='Enter') sendUserChat()">
+          <button onclick="sendUserChat()" style="background:var(--accent2);color:#fff;border:none;border-radius:10px;padding:0 18px;font-weight:700;cursor:pointer;">➤</button>
+        </div>
       </div>
     </div>
   </div>
@@ -3682,7 +3792,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_gpgWeTNnPlrxEssERWLiC1-G6WJ-XrjK2xRDirmpFdVcyPuCW57CkWwPhpr_1LX9fw/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1UcyQo4aZBZksbjIhorZtPCeLE-nrn1Ya1t5WHNyr1WMQ4TT8d6i23zivjf-zVCUl/exec";
     const TEST_NAME = "6th His 1st chapter";
 
     // ════ GOOGLE SIGN-IN CONFIG ════
@@ -3987,6 +4097,13 @@
 
       loadingEl.classList.remove("show");
       successEl.classList.add("show");
+
+      const bannedNow = await verifyNotBanned(payload.email || "");
+      if (bannedNow) {
+        document.getElementById("googleAuthOverlay").classList.remove("show");
+        _pendingAfterGoogleAuth = null;
+        return;
+      }
       setTimeout(hideGoogleAuthModalAndContinue, 1100);
     }
 
@@ -4004,10 +4121,94 @@
       if (!student || !student.id) return;
       try {
         const r = await api({ action: "checkEmailStatus", id: student.id });
-        if (r.ok && !r.hasEmail) {
+        if (r.ok && r.hasEmail && r.email) {
+          const banned = await verifyNotBanned(r.email);
+          if (banned) return;
+        } else if (r.ok && !r.hasEmail) {
           showGoogleAuthModal(null);
         }
       } catch (e) { /* ignore — non-blocking */ }
+    }
+
+  // ════ BAN SYSTEM ════
+    let currentUserEmail = "", banInfo = null;
+
+    async function verifyNotBanned(email) {
+      if (!email) return false;
+      currentUserEmail = email;
+      const r = await api({ action: "checkBanStatus", email });
+      if (r.ok && r.banned) { banInfo = r; showBanScreen(r); return true; }
+      return false;
+    }
+
+    function showBanScreen(info) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById("mainQuiz").style.display = "none";
+      document.getElementById("fabTimer").style.display = "none";
+      document.getElementById("profileFab").style.display = "none";
+      document.getElementById("menuFab").style.display = "none";
+      document.getElementById("fabRegister").classList.remove("visible");
+      document.getElementById("banReasonBox").style.display = info.showReason ? "block" : "none";
+      document.getElementById("banReasonText").textContent = info.reason;
+      document.getElementById("banNameBox").style.display = info.showName ? "block" : "none";
+      document.getElementById("banMobileBox").style.display = info.showMobile ? "block" : "none";
+      document.getElementById("banUpdateBtn").style.display = (info.showName || info.showMobile) ? "block" : "none";
+      document.getElementById("banRequestBtn").style.display = info.requestOn ? "block" : "none";
+      document.getElementById("banChatWrap").style.display = "none";
+      document.getElementById("banAlreadyReq").style.display = "none";
+      document.getElementById("screenBanned").classList.add("active");
+      if (info.requestOn) refreshUnbanState();
+    }
+
+    async function refreshUnbanState() {
+      const r = await api({ action: "getUnbanStatus", email: currentUserEmail });
+      if (r.ok && r.requested) {
+        document.getElementById("banRequestBtn").style.display = "none";
+        document.getElementById("banAlreadyReq").style.display = "block";
+        if (banInfo && banInfo.chatOn) {
+          document.getElementById("banChatWrap").style.display = "block";
+          renderBanChat(r);
+        }
+      }
+    }
+
+    function renderBanChat(r) {
+      const box = document.getElementById("banChatMessages");
+      box.innerHTML = "";
+      if (r.adminReply) {
+        const tagHTML = r.tag ? `<div class="ban-chat-tag">↪ ${r.tag}</div>` : "";
+        box.innerHTML += `<div class="ban-chat-bubble admin">${tagHTML}${r.adminReply}</div>`;
+      }
+      if (r.userChat) box.innerHTML += `<div class="ban-chat-bubble user">${r.userChat.replace(/\n/g, "<br>")}</div>`;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function submitBanNameMobile() {
+      const newName = document.getElementById("banNameInput").value.trim();
+      const newMobile = document.getElementById("banMobileInput").value.trim();
+      if (!newName && !newMobile) return;
+      await api({ action: "submitBanUpdate", email: currentUserEmail, newName, newMobile });
+      document.getElementById("banUpdateStatus").textContent = "✅ Update bhej diya gaya";
+    }
+
+    async function requestUnban() {
+      const btn = document.getElementById("banRequestBtn");
+      btn.disabled = true; btn.textContent = "Sending...";
+      await api({
+        action: "submitUnbanRequest", name: banInfo?.name || "",
+        mobile: document.getElementById("banMobileInput")?.value || "", email: currentUserEmail
+      });
+      await refreshUnbanState();
+    }
+
+    async function sendUserChat() {
+      const input = document.getElementById("banChatInput");
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = "";
+      await api({ action: "submitUserChat", email: currentUserEmail, message: msg });
+      const r = await api({ action: "getUnbanStatus", email: currentUserEmail });
+      renderBanChat(r);
     }
 
     // ════ BOOT ════
