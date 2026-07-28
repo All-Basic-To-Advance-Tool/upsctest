@@ -3511,18 +3511,31 @@
         <label class="form-label">📱 Naya Mobile Number Bharen</label>
         <input class="form-input" id="banMobileInput" type="tel" maxlength="10" placeholder="10-digit number">
       </div>
+      <div id="banGenderBox" style="display:none;" class="form-group">
+        <label class="form-label">⚧ Gender Update Karen</label>
+        <div class="gender-row">
+          <div class="gender-opt" id="banGBoy" onclick="selectGenderBan('boys')">👦 Boy</div>
+          <div class="gender-opt" id="banGGirl" onclick="selectGenderBan('girls')">👧 Girl</div>
+        </div>
+      </div>
       <button id="banUpdateBtn" onclick="submitBanNameMobile()" class="btn-primary" style="display:none;">Update Bhejein →</button>
       <div id="banUpdateStatus" style="text-align:center;font-size:0.8rem;color:var(--correct);margin-top:8px;"></div>
       <button id="banRequestBtn" onclick="requestUnban()" class="btn-primary" style="display:none;margin-top:16px;background:var(--accent2);">🔓 Request to Unban</button>
       <div id="banAlreadyReq" style="display:none;text-align:center;color:var(--accent2);font-size:0.82rem;margin-top:10px;font-family:'Rajdhani',sans-serif;font-weight:700;">✅ Aapki Unban Request bheji jaa chuki hai</div>
-      <div id="banChatWrap" style="display:none;margin-top:18px;border-top:1px solid var(--border);padding-top:16px;">
-        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--gold);font-size:0.85rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">💬 Admin से बात करें</div>
-        <div id="banChatMessages" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-        <div style="display:flex;gap:8px;">
-          <input class="form-input" id="banChatInput" type="text" placeholder="अपना message लिखें..." style="flex:1;" onkeydown="if(event.key==='Enter') sendUserChat()">
-          <button onclick="sendUserChat()" style="background:var(--accent2);color:#fff;border:none;border-radius:10px;padding:0 18px;font-weight:700;cursor:pointer;">➤</button>
-        </div>
-      </div>
+      <button id="banChatOpenBtn" onclick="openChatModal()" class="btn-primary" style="display:none;margin-top:14px;background:#229ED9;">💬 Admin से Chat करें</button>
+    </div>
+  </div>
+
+  <!-- ══ CHAT MODAL — alag page jaisa, cross se ban page pr wapas ══ -->
+  <div id="chatModalOverlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:6000;flex-direction:column;">
+    <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);background:var(--card);">
+      <button onclick="closeChatModal()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 14px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;">✕ Close</button>
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--gold);font-size:1rem;letter-spacing:1px;">💬 Admin से बात करें</div>
+    </div>
+    <div id="chatModalMessages" style="flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;"></div>
+    <div style="display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border);background:var(--card);">
+      <input class="form-input" id="chatModalInput" type="text" placeholder="अपना message लिखें..." style="flex:1;" onkeydown="if(event.key==='Enter') sendUserChat()">
+      <button onclick="sendUserChat()" style="background:var(--accent2);color:#fff;border:none;border-radius:10px;padding:0 20px;font-weight:700;cursor:pointer;">➤</button>
     </div>
   </div>
 
@@ -3792,7 +3805,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1UcyQo4aZBZksbjIhorZtPCeLE-nrn1Ya1t5WHNyr1WMQ4TT8d6i23zivjf-zVCUl/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwkb33eYyI4iZaNTjLXE4TCx1bMlsfGfP_fr6QSspPJKHnds8zHpAohf5yB3SdB4CxB/exec";
     const TEST_NAME = "6th His 1st chapter";
 
     // ════ GOOGLE SIGN-IN CONFIG ════
@@ -4118,16 +4131,17 @@
     // (Email) khali hai to background me check karke Google Sign-Up dikhao.
     // Current page/state disturb nahi hota — bas ek modal upar aata hai.
     async function checkEmailStatusAndPromptIfNeeded() {
-      if (!student || !student.id) return;
+      if (!student || !student.id) return false;
       try {
         const r = await api({ action: "checkEmailStatus", id: student.id });
         if (r.ok && r.hasEmail && r.email) {
           const banned = await verifyNotBanned(r.email);
-          if (banned) return;
+          if (banned) return true;
         } else if (r.ok && !r.hasEmail) {
           showGoogleAuthModal(null);
         }
       } catch (e) { /* ignore — non-blocking */ }
+      return false;
     }
 
   // ════ BAN SYSTEM ════
@@ -4152,12 +4166,27 @@
       document.getElementById("banReasonText").textContent = info.reason;
       document.getElementById("banNameBox").style.display = info.showName ? "block" : "none";
       document.getElementById("banMobileBox").style.display = info.showMobile ? "block" : "none";
-      document.getElementById("banUpdateBtn").style.display = (info.showName || info.showMobile) ? "block" : "none";
+      document.getElementById("banGenderBox").style.display = info.showGender ? "block" : "none";
+      selectedGenderBan = "";
+      document.getElementById("banGBoy").className = "gender-opt";
+      document.getElementById("banGGirl").className = "gender-opt";
+      document.getElementById("banUpdateBtn").style.display = (info.showName || info.showMobile || info.showGender) ? "block" : "none";
       document.getElementById("banRequestBtn").style.display = info.requestOn ? "block" : "none";
-      document.getElementById("banChatWrap").style.display = "none";
+      document.getElementById("banChatOpenBtn").style.display = "none";
       document.getElementById("banAlreadyReq").style.display = "none";
+      closeChatModal();
       document.getElementById("screenBanned").classList.add("active");
       if (info.requestOn) refreshUnbanState();
+    }
+
+    let selectedGenderBan = "";
+    let chatPollInterval = null;
+    let lastChatSignature = "";
+
+    function selectGenderBan(g) {
+      selectedGenderBan = g;
+      document.getElementById("banGBoy").className = "gender-opt" + (g === "boys" ? " selected-m" : "");
+      document.getElementById("banGGirl").className = "gender-opt" + (g === "girls" ? " selected-f" : "");
     }
 
     async function refreshUnbanState() {
@@ -4166,28 +4195,85 @@
         document.getElementById("banRequestBtn").style.display = "none";
         document.getElementById("banAlreadyReq").style.display = "block";
         if (banInfo && banInfo.chatOn) {
-          document.getElementById("banChatWrap").style.display = "block";
-          renderBanChat(r);
+          document.getElementById("banChatOpenBtn").style.display = "block";
         }
       }
     }
 
+    // ✅ WhatsApp jaisa chat — har message apni alag row/bubble me, time ke sath
     function renderBanChat(r) {
-      const box = document.getElementById("banChatMessages");
+      const box = document.getElementById("chatModalMessages");
+      if (!box) return;
       box.innerHTML = "";
-      if (r.adminReply) {
-        const tagHTML = r.tag ? `<div class="ban-chat-tag">↪ ${r.tag}</div>` : "";
-        box.innerHTML += `<div class="ban-chat-bubble admin">${tagHTML}${r.adminReply}</div>`;
-      }
-      if (r.userChat) box.innerHTML += `<div class="ban-chat-bubble user">${r.userChat.replace(/\n/g, "<br>")}</div>`;
+
+      const items = [];
+      (r.userChatList || []).forEach(u => items.push({ side: "user", time: u.t || "", text: u.m || "" }));
+      if (r.adminReply) items.push({ side: "admin", time: "", text: r.adminReply, tag: r.tag || "" });
+
+      items.forEach(it => {
+        const timeHTML = it.time ? `<div style="font-size:0.62rem;opacity:0.6;margin-top:4px;">${it.time}</div>` : "";
+        const tagHTML = it.tag ? `<div class="ban-chat-tag">↪ ${it.tag}</div>` : "";
+        box.innerHTML += `<div class="ban-chat-bubble ${it.side}" style="align-self:${it.side === 'admin' ? 'flex-start' : 'flex-end'};">${tagHTML}${it.text.replace(/\n/g, "<br>")}${timeHTML}</div>`;
+      });
+
       box.scrollTop = box.scrollHeight;
     }
 
+    function openChatModal() {
+      document.getElementById("chatModalOverlay").style.display = "flex";
+      loadChatMessages();
+      clearInterval(chatPollInterval);
+      chatPollInterval = setInterval(loadChatMessages, 4000); // ✅ auto-refresh, no reload
+    }
+
+    function closeChatModal() {
+      const modal = document.getElementById("chatModalOverlay");
+      if (modal) modal.style.display = "none";
+      clearInterval(chatPollInterval);
+      chatPollInterval = null;
+    }
+
+    async function loadChatMessages() {
+      if (!currentUserEmail) return;
+      const r = await api({ action: "getUnbanStatus", email: currentUserEmail });
+      if (!r.ok) return;
+      // ✅ sirf tabhi re-render karo jab kuch naya aaya ho — typing disturb nahi hogi
+      const sig = JSON.stringify(r.userChatList || []) + "|" + (r.adminReply || "");
+      if (sig === lastChatSignature) return;
+      lastChatSignature = sig;
+      renderBanChat(r);
+    }
+
     async function submitBanNameMobile() {
+      const nameShown = document.getElementById("banNameBox").style.display !== "none";
+      const mobileShown = document.getElementById("banMobileBox").style.display !== "none";
+      const genderShown = document.getElementById("banGenderBox").style.display !== "none";
+
       const newName = document.getElementById("banNameInput").value.trim();
       const newMobile = document.getElementById("banMobileInput").value.trim();
-      if (!newName && !newMobile) return;
-      await api({ action: "submitBanUpdate", email: currentUserEmail, newName, newMobile });
+      const newGender = selectedGenderBan;
+
+      const missing = [];
+      if (nameShown && !newName) missing.push("नाम");
+      if (mobileShown && !newMobile) missing.push("Mobile Number");
+      if (genderShown && !newGender) missing.push("Gender");
+
+      if (missing.length > 0) {
+        alert("⚠ कृपया पहले यह भरें:\n\n" + missing.join("\n"));
+        return;
+      }
+
+      await api({ action: "submitBanUpdate", email: currentUserEmail, newName, newMobile, newGender });
+
+      // ✅ Local profile me bhi turant update
+      if (student) {
+        if (newName) student.name = newName;
+        if (newMobile) student.mobile = newMobile;
+        if (newGender) student.gender = newGender;
+        localStorage.setItem("upsc_student", JSON.stringify(student));
+        updateProfileFAB();
+      }
+
       document.getElementById("banUpdateStatus").textContent = "✅ Update bhej diya gaya";
     }
 
@@ -4202,13 +4288,13 @@
     }
 
     async function sendUserChat() {
-      const input = document.getElementById("banChatInput");
-      const msg = input.value.trim();
+      const modalInput = document.getElementById("chatModalInput");
+      const msg = (modalInput ? modalInput.value : "").trim();
       if (!msg) return;
-      input.value = "";
+      if (modalInput) modalInput.value = "";
       await api({ action: "submitUserChat", email: currentUserEmail, message: msg });
-      const r = await api({ action: "getUnbanStatus", email: currentUserEmail });
-      renderBanChat(r);
+      lastChatSignature = "";
+      await loadChatMessages();
     }
 
     // ════ BOOT ════
@@ -4222,7 +4308,11 @@
       } catch (e) { student = null; }
 
       initGoogleSignIn();
-      if (student) checkEmailStatusAndPromptIfNeeded();
+      // ✅ FIX: ban-check ka result ab AWAIT hota hai — jab tak confirm nahi ho
+      // jaata ki student banned hai ya nahi, koi bhi screen (preview/test) nahi khulegi
+      let bannedAtBoot = false;
+      if (student) bannedAtBoot = await checkEmailStatusAndPromptIfNeeded();
+      if (bannedAtBoot) return; // ban screen already dikha diya — yahin ruk jao
 
       // ✅ Share link se aaya hai? (?test=ID) — to seedha wahi test load karo
       const urlParams = new URLSearchParams(window.location.search);
@@ -5094,6 +5184,18 @@
 
     async function checkPassword() {
       if (isVerifyingPassword) return;
+      // ✅ EXTRA SAFETY: password verify karne se pehle dubara ban-check —
+      // taaki koi banned student kisi bhi tarike se yahan tak aaye to bhi
+      // test start na kar paaye
+      if (student && student.id) {
+        try {
+          const er = await api({ action: "checkEmailStatus", id: student.id });
+          if (er.ok && er.hasEmail && er.email) {
+            const bannedNow = await verifyNotBanned(er.email);
+            if (bannedNow) return;
+          }
+        } catch (e) { /* ignore — non-blocking */ }
+      }
       const entered = document.getElementById("pwInput").value.trim();
       const err = document.getElementById("pwError");
       const loadingInfo = document.getElementById("pwLoadingInfo");
