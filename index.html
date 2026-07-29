@@ -955,9 +955,9 @@
 
     .profile-dropdown {
       position: fixed;
-      top: 76px;
+      top: 134px;
       left: 18px;
-      z-index: 799;
+      z-index: 850;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -1025,7 +1025,7 @@
 
     .fab-timer {
       position: fixed;
-      top: 18px;
+      top: 78px;
       right: 18px;
       z-index: 800;
       display: flex;
@@ -3151,13 +3151,18 @@
     }
 
     .ban-chat-tag {
-      font-size: 0.72rem;
-      color: var(--gold);
-      border-left: 2px solid var(--gold);
-      padding-left: 6px;
+      font-size: 0.74rem;
+      color: var(--text);
+      background: #00000030;
+      border-left: 3px solid var(--gold);
+      padding: 5px 8px;
+      border-radius: 6px;
       margin-bottom: 6px;
-      opacity: 0.85;
+      opacity: 0.9;
     }
+
+    .ban-chat-bubble { cursor: pointer; }
+    .ban-chat-bubble:active { opacity: 0.75; }
   </style>
 </head>
 
@@ -3387,9 +3392,11 @@
     <div class="pd-name" id="pdName">—</div>
     <div class="pd-mobile" id="pdMobile">—</div>
     <div class="pd-gender" id="pdGender">—</div>
+    <div class="pd-email" id="pdEmail" style="font-size:0.72rem;color:var(--muted);margin-top:4px;word-break:break-all;"></div>
     <div class="pd-sep"></div>
     <button class="pd-btn" onclick="openEdit()">✏️ Edit Profile</button>
     <button class="pd-btn" onclick="closeDropdownAndNewReg()">🔄 New Registration</button>
+    <button class="pd-btn" onclick="logoutStudent()" style="color:#fca5a5;">🚪 Logout</button>
   </div>
 
   <!-- ══ MENU FAB (Pages: Contact/Privacy/Terms/Refund/About/Pricing) ══ -->
@@ -3809,7 +3816,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxJBCGbEQM1E8vsq3MzMXmfCFnWxdu_iybdXoIlH_1kHaWwoOYEpyuMm847D79MCOo/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH4vYqDoGO4CIK8VMT6aFaNAoJWG29WYJffelaiihuPmOEJV4nvnMWtuu7BgOlvFKI/exec";
     const TEST_NAME = "6th His 1st chapter";
 
     // ════ GOOGLE SIGN-IN CONFIG ════
@@ -4103,7 +4110,7 @@
       try { payload = decodeGoogleJwt(response.credential); }
       catch (e) { console.log("JWT decode failed:", e); hideGoogleAuthModalAndContinue(); return; }
 
-      await api({
+      const linkResult = await api({
         action: "linkGoogleEmail",
         id: student?.id || "",
         email: payload.email || "",
@@ -4112,9 +4119,19 @@
         emailVerified: String(!!payload.email_verified)
       });
 
+      if (linkResult && linkResult.ok && linkResult.mergedId && student) {
+        student.id = linkResult.mergedId;
+      }
+      if (student) {
+        student.email = payload.email || "";
+        localStorage.setItem("upsc_student", JSON.stringify(student));
+        updateProfileFAB();
+      }
+
       loadingEl.classList.remove("show");
       successEl.classList.add("show");
 
+      startBanPolling(payload.email || "");
       const bannedNow = await verifyNotBanned(payload.email || "");
       if (bannedNow) {
         document.getElementById("googleAuthOverlay").classList.remove("show");
@@ -4139,6 +4156,12 @@
       try {
         const r = await api({ action: "checkEmailStatus", id: student.id });
         if (r.ok && r.hasEmail && r.email) {
+          if (student.email !== r.email) {
+            student.email = r.email;
+            localStorage.setItem("upsc_student", JSON.stringify(student));
+            updateProfileFAB();
+          }
+          startBanPolling(r.email);
           const banned = await verifyNotBanned(r.email);
           if (banned) return true;
         } else if (r.ok && !r.hasEmail) {
@@ -4150,6 +4173,7 @@
 
   // ════ BAN SYSTEM ════
     let currentUserEmail = "", banInfo = null;
+    let banPollInterval = null;
 
     async function verifyNotBanned(email) {
       if (!email) return false;
@@ -4157,6 +4181,24 @@
       const r = await api({ action: "checkBanStatus", email });
       if (r.ok && r.banned) { banInfo = r; showBanScreen(r); return true; }
       return false;
+    }
+
+    // ✅ Student kahin bhi ho (quiz de raha ho, preview par ho) — har 12 second me
+    // background me ban-check hota rehta hai. Admin ban kare to bina refresh, turant
+    // ban-screen dikh jaayegi.
+    function startBanPolling(email) {
+      if (!email) return;
+      currentUserEmail = email;
+      clearInterval(banPollInterval);
+      banPollInterval = setInterval(async () => {
+        if (document.getElementById("screenBanned").classList.contains("active")) return;
+        const r = await api({ action: "checkBanStatus", email: currentUserEmail });
+        if (r.ok && r.banned) {
+          banInfo = r;
+          clearInterval(timerInterval);
+          showBanScreen(r);
+        }
+      }, 12000);
     }
 
     function showBanScreen(info) {
@@ -4236,12 +4278,9 @@
         const bubble = document.createElement("div");
         bubble.className = "ban-chat-bubble " + it.side;
         bubble.style.alignSelf = it.side === "admin" ? "flex-start" : "flex-end";
+        bubble.title = "Reply karne ke liye tap karein";
         bubble.innerHTML = tagHTML + it.text.replace(/\n/g, "<br>") + timeHTML;
-        if (it.side === "admin") {
-          bubble.style.cursor = "pointer";
-          bubble.title = "Reply karne ke liye tap karein";
-          bubble.onclick = () => setQuoteReply(it.text);
-        }
+        bubble.onclick = () => setQuoteReply(it.text);
         box.appendChild(bubble);
       });
 
@@ -4403,7 +4442,8 @@
     function createAllTestFab() {
       const fab = document.getElementById("allTestFab");
       if (!fab) return;
-      fab.style.cssText = "position:fixed;top:74px;left:18px;z-index:800;width:48px;height:48px;border-radius:50%;border:2px solid #3b82f6;background:#1a1d27;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 20px #00000066;transition:all .2s;gap:1px;";
+      const topPos = (student ? 74 : 18);
+      fab.style.cssText = "position:fixed;top:" + topPos + "px;left:18px;z-index:800;width:48px;height:48px;border-radius:50%;border:2px solid #3b82f6;background:#1a1d27;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 20px #00000066;transition:all .2s;gap:1px;";
       fab.innerHTML = `<span style="font-size:1.1rem;line-height:1;">📋</span><span style="font-size:0.42rem;color:#3b82f6;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:0.5px;line-height:1.2;">ALL TEST</span>`;
       fab.onclick = (e) => { e.stopPropagation(); toggleAllTestMenu(); };
       fab.onmouseover = () => { fab.style.transform = "scale(1.08)"; fab.style.borderColor = "#60a5fa"; };
@@ -5357,12 +5397,21 @@
 
     function updateProfileFAB() {
       const fab = document.getElementById("profileFab");
-      if (!student) { fab.style.display = "none"; return; }
+      if (!student) { fab.style.display = "none"; repositionAllTestFab(); return; }
       fab.style.display = "flex";
       document.getElementById("pfEmoji").textContent = student.gender === "girls" ? "👧" : "👦";
       document.getElementById("pdName").textContent = student.name || "—";
       document.getElementById("pdMobile").textContent = student.mobile || "—";
       document.getElementById("pdGender").textContent = student.gender === "girls" ? "👧 Girl" : "👦 Boy";
+      const emailRow = document.getElementById("pdEmail");
+      if (emailRow) emailRow.textContent = student.email ? ("✉️ " + student.email) : "";
+      repositionAllTestFab();
+    }
+
+    function repositionAllTestFab() {
+      const fab = document.getElementById("allTestFab");
+      if (!fab) return;
+      fab.style.top = (student ? 74 : 18) + "px";
     }
 
     function toggleProfileDropdown() { document.getElementById("profileDropdown").classList.toggle("open"); }
@@ -5370,6 +5419,15 @@
     document.addEventListener("click", e => {
       if (!e.target.closest("#profileFab") && !e.target.closest("#profileDropdown")) closeDropdown();
     });
+
+    function logoutStudent() {
+      closeDropdown();
+      localStorage.removeItem("upsc_student"); // ✅ sirf local se — sheet me data waisa hi rehta hai
+      student = null; selectedGender = ""; currentUserEmail = "";
+      document.getElementById("profileFab").style.display = "none";
+      repositionAllTestFab();
+      showScreen("screenPreview");
+    }
 
     function closeDropdownAndNewReg() {
       closeDropdown();
