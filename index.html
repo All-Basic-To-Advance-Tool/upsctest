@@ -3407,9 +3407,9 @@
     <div class="pd-email" id="pdEmail"
       style="font-size:0.72rem;color:var(--muted);margin-top:4px;word-break:break-all;"></div>
     <div class="pd-sep"></div>
-    <button class="pd-btn" onclick="openEdit()">✏️ Edit Profile</button>
-    <button class="pd-btn" onclick="closeDropdownAndNewReg()">🔄 New Registration</button>
-    <button class="pd-btn" onclick="logoutStudent()" style="color:#fca5a5;">🚪 Logout</button>
+    <button class="pd-btn" id="pdEditBtn" onclick="openEdit()">✏️ Edit Profile</button>
+    <button class="pd-btn" id="pdNewRegBtn" onclick="closeDropdownAndNewReg()">🔄 New Registration</button>
+    <button class="pd-btn" id="pdLogoutBtn" onclick="logoutStudent()" style="color:#fca5a5;">🚪 Logout</button>
   </div>
 
   <!-- ══ MENU FAB (Pages: Contact/Privacy/Terms/Refund/About/Pricing) ══ -->
@@ -4207,6 +4207,7 @@
 
     // ════ BAN SYSTEM ════
     let currentUserEmail = "", banInfo = null;
+    let banDropdownInfo = null; // ✅ ban hone par profile FAB me sirf allowed fields dikhane ke liye
     let banPollInterval = null;
 
     async function verifyNotBanned(email) {
@@ -4245,9 +4246,11 @@
       document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
       document.getElementById("mainQuiz").style.display = "none";
       document.getElementById("fabTimer").style.display = "none";
-      document.getElementById("profileFab").style.display = "none";
       document.getElementById("menuFab").style.display = "none";
       document.getElementById("fabRegister").classList.remove("visible");
+      // ✅ Profile FAB ab ban page pr bhi dikhega — dropdown me sirf
+      // admin ne allow ki hui fields (name/mobile/gender) hi dikhengi
+      banDropdownInfo = info;
       document.getElementById("banReasonBox").style.display = info.showReason ? "block" : "none";
       document.getElementById("banReasonText").textContent = info.reason;
       document.getElementById("banNameBox").style.display = info.showName ? "block" : "none";
@@ -4267,6 +4270,7 @@
       document.getElementById("banAlreadyReq").style.display = "none";
       closeChatModal();
       document.getElementById("screenBanned").classList.add("active");
+      updateProfileFAB(); // ✅ profile FAB ko allowed-fields-only view me refresh karo
       if (info.requestOn) refreshUnbanState();
     }
 
@@ -5468,9 +5472,35 @@
       if (!student) { fab.style.display = "none"; repositionAllTestFab(); return; }
       fab.style.display = "flex";
       document.getElementById("pfEmoji").textContent = student.gender === "girls" ? "👧" : "👦";
-      document.getElementById("pdName").textContent = student.name || "—";
-      document.getElementById("pdMobile").textContent = student.mobile || "—";
-      document.getElementById("pdGender").textContent = student.gender === "girls" ? "👧 Girl" : "👦 Boy";
+
+      const nameRow = document.getElementById("pdName");
+      const mobileRow = document.getElementById("pdMobile");
+      const genderRow = document.getElementById("pdGender");
+      const logoutBtn = document.getElementById("pdLogoutBtn");
+      const editBtn = document.getElementById("pdEditBtn");
+      const newRegBtn = document.getElementById("pdNewRegBtn");
+
+      nameRow.textContent = student.name || "—";
+      mobileRow.textContent = student.mobile || "—";
+      genderRow.textContent = student.gender === "girls" ? "👧 Girl" : "👦 Boy";
+
+      if (banDropdownInfo) {
+        // ✅ Banned hai — sirf wahi field dikhao jo ban page pr allowed hai
+        nameRow.style.display = banDropdownInfo.showName ? "block" : "none";
+        mobileRow.style.display = banDropdownInfo.showMobile ? "block" : "none";
+        genderRow.style.display = banDropdownInfo.showGender ? "inline-block" : "none";
+        if (logoutBtn) logoutBtn.style.display = "none";
+        if (editBtn) editBtn.style.display = "none";
+        if (newRegBtn) newRegBtn.style.display = "none";
+      } else {
+        nameRow.style.display = "block";
+        mobileRow.style.display = "block";
+        genderRow.style.display = "inline-block";
+        if (logoutBtn) logoutBtn.style.display = "";
+        if (editBtn) editBtn.style.display = "";
+        if (newRegBtn) newRegBtn.style.display = "";
+      }
+
       const emailRow = document.getElementById("pdEmail");
       if (emailRow) emailRow.textContent = student.email ? ("✉️ " + student.email) : "";
       repositionAllTestFab();
