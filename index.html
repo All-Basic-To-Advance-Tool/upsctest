@@ -4315,14 +4315,21 @@
       chatPollInterval = null;
     }
 
+    let lastRenderedCount = 0;
+
     async function loadChatMessages() {
       if (!currentUserEmail) return;
       const r = await api({ action: "getUnbanStatus", email: currentUserEmail });
       if (!r.ok) return;
-      // ✅ sirf tabhi re-render karo jab kuch naya aaya ho — typing disturb nahi hogi
-      const sig = JSON.stringify(r.messages || []);
+      const msgs = r.messages || [];
+      // ✅ Race-guard: agar background poll ka fetch send se PEHLE start hua tha
+      // aur baad me resolve hua (stale data), to usme naye message se kam count
+      // hoga — usse render mat karo, warna message screen se turant gayab dikhta hai
+      if (msgs.length < lastRenderedCount) return;
+      const sig = JSON.stringify(msgs);
       if (sig === lastChatSignature) return;
       lastChatSignature = sig;
+      lastRenderedCount = msgs.length;
       renderBanChat(r);
     }
 
@@ -4376,9 +4383,11 @@
       if (modalInput) modalInput.value = "";
       const quoted = pendingQuote;
       clearQuoteReply();
+      clearInterval(chatPollInterval); // ✅ send ke dauraan background poll rok do — race avoid
       await api({ action: "submitUserChat", email: currentUserEmail, message: msg, quotedText: quoted });
       lastChatSignature = "";
       await loadChatMessages();
+      chatPollInterval = setInterval(loadChatMessages, 4000); // ✅ wapas shuru karo
     }
 
     // ════ BOOT ════
