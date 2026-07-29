@@ -929,7 +929,7 @@
       position: fixed;
       top: 18px;
       left: 18px;
-      z-index: 800;
+      z-index: 1250;
       width: 48px;
       height: 48px;
       border-radius: 50%;
@@ -957,7 +957,7 @@
       position: fixed;
       top: 134px;
       left: 18px;
-      z-index: 850;
+      z-index: 1260;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -4257,13 +4257,13 @@
       document.getElementById("banMobileBox").style.display = info.showMobile ? "block" : "none";
       document.getElementById("banGenderBox").style.display = info.showGender ? "block" : "none";
 
-      // ✅ Jo field dikhai jaani hai usme student ki EXISTING value bhar do —
-      // taaki wo dekh sake ki kya bhara hai aur hata kar naya likh sake
-      document.getElementById("banNameInput").value = info.showName ? (student?.name || "") : "";
-      document.getElementById("banMobileInput").value = info.showMobile ? (student?.mobile || "") : "";
-      selectedGenderBan = (info.showGender && student?.gender) ? student.gender : "";
-      document.getElementById("banGBoy").className = "gender-opt" + (selectedGenderBan === "boys" ? " selected-m" : "");
-      document.getElementById("banGGirl").className = "gender-opt" + (selectedGenderBan === "girls" ? " selected-f" : "");
+      // ✅ Input boxes khaali rahenge (sirf naya value daalne ke liye) —
+      // current values ab sirf profile FAB dropdown me dikhengi
+      document.getElementById("banNameInput").value = "";
+      document.getElementById("banMobileInput").value = "";
+      selectedGenderBan = "";
+      document.getElementById("banGBoy").className = "gender-opt";
+      document.getElementById("banGGirl").className = "gender-opt";
       document.getElementById("banUpdateBtn").style.display = (info.showName || info.showMobile || info.showGender) ? "block" : "none";
       document.getElementById("banRequestBtn").style.display = info.requestOn ? "block" : "none";
       document.getElementById("banChatOpenBtn").style.display = "none";
