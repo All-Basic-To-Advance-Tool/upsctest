@@ -3151,14 +3151,21 @@
     }
 
     .ban-chat-tag {
-      font-size: 0.74rem;
-      color: var(--text);
-      background: #00000030;
-      border-left: 3px solid var(--gold);
-      padding: 5px 8px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.08);
+      border-left: 3px solid var(--accent2);
+      padding: 6px 8px;
       border-radius: 6px;
       margin-bottom: 6px;
-      opacity: 0.9;
+      opacity: 0.85;
+    }
+
+    .ban-chat-msg-text {
+      font-size: 0.88rem;
+      color: var(--text);
+      font-weight: 500;
+      display: block;
     }
 
     .ban-chat-bubble { cursor: pointer; }
@@ -3816,7 +3823,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyH4vYqDoGO4CIK8VMT6aFaNAoJWG29WYJffelaiihuPmOEJV4nvnMWtuu7BgOlvFKI/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxh8c3Vmi0zQWkdnS06-gasd17z_Dm1LgM3S7VvUNGndQSa-RI-AYhQR4w9LB2ylsndA/exec";
     const TEST_NAME = "6th His 1st chapter";
 
     // ════ GOOGLE SIGN-IN CONFIG ════
@@ -4191,14 +4198,20 @@
       currentUserEmail = email;
       clearInterval(banPollInterval);
       banPollInterval = setInterval(async () => {
-        if (document.getElementById("screenBanned").classList.contains("active")) return;
+        const onBanScreen = document.getElementById("screenBanned").classList.contains("active");
         const r = await api({ action: "checkBanStatus", email: currentUserEmail });
         if (r.ok && r.banned) {
-          banInfo = r;
-          clearInterval(timerInterval);
-          showBanScreen(r);
+          if (!onBanScreen) {
+            banInfo = r;
+            clearInterval(timerInterval);
+            showBanScreen(r);
+          }
+        } else if (r.ok && !r.banned && onBanScreen) {
+          // ✅ Admin ne Ban User sheet se row hata di — turant page reload karke
+          // student ko normal flow (preview/quiz) me wapas le aao, refresh ka wait nahi karna
+          location.reload();
         }
-      }, 12000);
+      }, 7000);
     }
 
     function showBanScreen(info) {
@@ -4250,7 +4263,8 @@
 
     // ✅ Student kisi bhi PURANE admin message par tap kare to usko reply me tag kar sakta hai
     function setQuoteReply(text) {
-      pendingQuote = text.length > 80 ? text.substring(0, 80) + "..." : text;
+      const clean = text.replace(/^#+\s*/, "").trim(); // ✅ leading # hata do — dobara tag karne par double # na bane
+      pendingQuote = clean.length > 80 ? clean.substring(0, 80) + "..." : clean;
       const bar = document.getElementById("chatQuotePreview");
       if (bar) {
         bar.style.display = "flex";
@@ -4279,7 +4293,7 @@
         bubble.className = "ban-chat-bubble " + it.side;
         bubble.style.alignSelf = it.side === "admin" ? "flex-start" : "flex-end";
         bubble.title = "Reply karne ke liye tap karein";
-        bubble.innerHTML = tagHTML + it.text.replace(/\n/g, "<br>") + timeHTML;
+        bubble.innerHTML = tagHTML + '<span class="ban-chat-msg-text">' + it.text.replace(/\n/g, "<br>") + '</span>' + timeHTML;
         bubble.onclick = () => setQuoteReply(it.text);
         box.appendChild(bubble);
       });
