@@ -3850,7 +3850,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMXhZF-SCn6ppwF7h5J8Jwc-T2Iib4Pl678YpUatznI5GQBkDdZ9ImqWoXId9Cn9VW2A/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0R2XhcwE0wvIBSCxugJv4jicPNuJixNXldUi2kEgGsUB8ESuxMdMPBR3svVnculDeOg/exec";
     const TEST_NAME = "6th His 1st chapter";
 
     // ════ GOOGLE SIGN-IN CONFIG ════
@@ -4939,6 +4939,24 @@
       document.getElementById("previewQCount").textContent = questions.length;
       showScreen("screenPreview");
       updateFabRegisterVisibility();
+    }
+    async function loadProQuizList() {
+      const r = await api({ action: "getQuizListPro", email: student?.email || "", lang: lang });
+      if (!r.ok) return;
+      // r.quizzes = [{ id, title, category, access, locked }]
+      // "locked: true" wale par upgrade/subscribe prompt dikhao, baaki par Play button
+    }
+
+    async function startProQuiz(quizId) {
+      const r = await api({ action: "requestQuizAccess", email: student?.email || "", quizId: quizId });
+      if (!r.ok) {
+        if (r.error === "subscription_required") { /* upgrade popup dikhao */ }
+        else { alert("Ye quiz abhi available nahi hai"); }
+        return;
+      }
+      loadTestIntoQuestions(r.test);
+      rebuildPreview();
+      showScreen("screenPreview");
     }
 
     function shareTestLink(id) {
