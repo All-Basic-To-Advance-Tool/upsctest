@@ -6576,6 +6576,50 @@
       }
       closePdfPopup();
     }
+
+
+    // ✅ Plans hamesha Setting sheet se load honge — kabhi hardcode nahi
+    async function loadSubscriptionPlans() {
+      const r = await api({ action: "getPlanConfig" });
+      if (!r.ok) return;
+      // r.plans = [{plan:"1 Month", price:299}, {plan:"6 Months", price:899}, {plan:"1 Year", price:999}]
+      renderPlansUI(r.plans);
+    }
+
+    async function startSubscriptionPurchase(planName) {
+      const orderRes = await api({ action: "createRazorpayOrder", plan: planName, email: student?.email || "" });
+      if (!orderRes.ok) { alert("Order banane me error: " + orderRes.error); return; }
+
+      const options = {
+        key: orderRes.keyId,
+        amount: orderRes.amount,
+        currency: orderRes.currency,
+        order_id: orderRes.orderId,
+        name: "UPSC MCQ Practice",
+        description: planName + " Subscription",
+        handler: async function (response) {
+          const verifyRes = await api({
+            action: "verifyRazorpayPayment",
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            plan: planName,
+            name: student?.name || "", mobile: student?.mobile || "",
+            gender: student?.gender || "", email: student?.email || ""
+          });
+          if (verifyRes.ok) {
+            alert("✅ Subscription active ho gayi!");
+            // yahan quiz list refresh kar do: loadProQuizList()
+          } else {
+            alert("❌ Payment verify nahi hua: " + verifyRes.error);
+          }
+        },
+        prefill: { name: student?.name || "", email: student?.email || "", contact: student?.mobile || "" },
+        theme: { color: "#f59e0b" }
+      };
+      const rzp = new Razorpay(options);
+      rzp.open();
+    }
   </script>
 </body>
 
