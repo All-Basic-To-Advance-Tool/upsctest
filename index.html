@@ -3175,6 +3175,70 @@
     .ban-chat-bubble:active {
       opacity: 0.75;
     }
+
+    /* ══ PRICING PAGE — Glassmorphism, sheet-driven ══ */
+    .pp-wrap { max-width: 960px; margin: 0 auto 60px; }
+    .pp-header { text-align: center; margin-bottom: 32px; }
+    .pp-badge {
+      display: inline-block; background: linear-gradient(135deg, #7c3aed, #3b82f6);
+      color: #fff; font-family: 'Rajdhani', sans-serif; font-weight: 700;
+      font-size: 0.78rem; letter-spacing: 2px; padding: 6px 18px; border-radius: 20px;
+      margin-bottom: 14px; box-shadow: 0 4px 18px #7c3aed55;
+    }
+    .pp-title { font-family: 'Rajdhani', sans-serif; font-size: 2.1rem; font-weight: 700; color: var(--gold); letter-spacing: 1px; margin-bottom: 8px; }
+    .pp-sub { color: var(--muted); font-size: 0.92rem; max-width: 460px; margin: 0 auto; line-height: 1.6; }
+    .pp-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; margin-bottom: 36px; }
+    @media(max-width: 860px) { .pp-cards { grid-template-columns: 1fr; max-width: 400px; margin-left:auto; margin-right:auto; } }
+    .pp-card {
+      position: relative; background: rgba(26, 29, 39, 0.6);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 30px 22px 26px; text-align: center;
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .pp-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px #00000066; }
+    .pp-card-premium {
+      border: 2px solid var(--gold);
+      background: linear-gradient(160deg, rgba(30,42,74,0.85), rgba(26,29,39,0.85));
+      transform: scale(1.06); box-shadow: 0 0 40px #fbbf2444, 0 12px 40px #00000066; z-index: 2;
+    }
+    .pp-card-premium:hover { transform: scale(1.08) translateY(-4px); }
+    @media(max-width: 860px) { .pp-card-premium { transform: scale(1); } .pp-card-premium:hover { transform: translateY(-4px); } }
+    .pp-popular-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #0f1117;
+      font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.68rem;
+      letter-spacing: 0.5px; padding: 5px 14px; border-radius: 20px; white-space: nowrap;
+      box-shadow: 0 4px 14px #f59e0b66;
+    }
+    .pp-medal { font-size: 2.4rem; margin-bottom: 6px; }
+    .pp-plan-name { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 1.15rem; color: var(--text); letter-spacing: 1px; margin-bottom: 12px; }
+    .pp-price { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 2.4rem; color: var(--gold); line-height: 1; }
+    .pp-price-sub { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+    .pp-permonth { font-size: 0.76rem; color: var(--muted); margin: 6px 0 18px; }
+    .pp-features { list-style: none; text-align: left; margin-bottom: 22px; }
+    .pp-features li { font-size: 0.86rem; color: #b0bcd4; padding: 6px 4px; line-height: 1.5; border-bottom: 1px dashed var(--border); }
+    .pp-features li:last-child { border-bottom: none; }
+    .pp-buy-btn {
+      width: 100%; background: var(--accent2); color: #fff; border: none;
+      border-radius: 12px; padding: 13px; font-weight: 700; font-size: 0.92rem;
+      cursor: pointer; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; transition: all .2s;
+    }
+    .pp-buy-btn:hover { background: #2563eb; transform: translateY(-1px); }
+    .pp-buy-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
+    .pp-card-premium .pp-buy-btn { background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #0f1117; box-shadow: 0 4px 20px #f59e0b55; }
+    .pp-card-premium .pp-buy-btn:hover { background: linear-gradient(135deg, #d97706, #f59e0b); }
+    .pp-secure { text-align: center; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 28px; }
+    .pp-secure-row { font-family: 'Rajdhani', sans-serif; font-weight: 700; color: var(--text); font-size: 0.9rem; margin-bottom: 4px; }
+    .pp-secure-methods { font-size: 0.78rem; color: var(--muted); }
+    .pp-faq { max-width: 640px; margin: 0 auto 28px; }
+    .pp-faq-title { font-family: 'Rajdhani', sans-serif; font-weight: 700; color: var(--gold); font-size: 1.05rem; margin-bottom: 14px; text-align: center; }
+    .pp-faq-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; margin-bottom: 10px; }
+    .pp-faq-item b { color: var(--text); font-size: 0.88rem; display: block; margin-bottom: 4px; }
+    .pp-faq-item p { color: var(--muted); font-size: 0.84rem; line-height: 1.5; }
+    .pp-footer { text-align: center; color: var(--muted); font-size: 0.88rem; }
+    .pp-wa-btn { margin-top: 10px; background: #25D366; color: #fff; border: none; border-radius: 10px; padding: 11px 26px; font-weight: 700; font-size: 0.86rem; cursor: pointer; font-family: 'Rajdhani', sans-serif; }
+    .pp-wa-btn:hover { background: #1da851; }
   </style>
 </head>
 
@@ -3850,7 +3914,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby0R2XhcwE0wvIBSCxugJv4jicPNuJixNXldUi2kEgGsUB8ESuxMdMPBR3svVnculDeOg/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVlcVlWBeynjeuod0PSyL8IaxLdEBlAqfpPvsnOSIzltsgasy2dfF5tXk5b3bMbKkhgw/exec";
     const TEST_NAME = "6th His 1st chapter";
 
     // ════ GOOGLE SIGN-IN CONFIG ════
@@ -4940,24 +5004,6 @@
       showScreen("screenPreview");
       updateFabRegisterVisibility();
     }
-    async function loadProQuizList() {
-      const r = await api({ action: "getQuizListPro", email: student?.email || "", lang: lang });
-      if (!r.ok) return;
-      // r.quizzes = [{ id, title, category, access, locked }]
-      // "locked: true" wale par upgrade/subscribe prompt dikhao, baaki par Play button
-    }
-
-    async function startProQuiz(quizId) {
-      const r = await api({ action: "requestQuizAccess", email: student?.email || "", quizId: quizId });
-      if (!r.ok) {
-        if (r.error === "subscription_required") { /* upgrade popup dikhao */ }
-        else { alert("Ye quiz abhi available nahi hai"); }
-        return;
-      }
-      loadTestIntoQuestions(r.test);
-      rebuildPreview();
-      showScreen("screenPreview");
-    }
 
     function shareTestLink(id) {
       const url = window.location.origin + window.location.pathname + "?test=" + encodeURIComponent(id);
@@ -5145,6 +5191,14 @@
       closeMenuDropdown();
       const active = document.querySelector(".screen.active");
       if (active && active.id !== "screenPageContent") preLegalScreen = active.id;
+
+      // ✅ Pricing page ab "settings" sheet se live data ke saath alag render hota hai
+      if (type === "pricing") {
+        showScreen("screenPageContent");
+        renderPricingPageContent();
+        return;
+      }
+
       const page = LEGAL_PAGES[type];
       if (!page) return;
       const wrap = document.getElementById("pageContentWrap");
@@ -5160,6 +5214,121 @@
 
     function closeLegalPage() {
       showScreen(preLegalScreen || "screenPreview");
+    }
+
+    // ══ PRICING PAGE — live plans + subscribe (Razorpay baad me yahin jodna) ══
+    let cachedPricingPlans = null;
+
+    async function renderPricingPageContent() {
+      const wrap = document.getElementById("pageContentWrap");
+      wrap.innerHTML = `
+        <div class="pp-wrap">
+          <div class="pp-header">
+            <div class="pp-badge">💎 PREMIUM ACCESS</div>
+            <h2 class="pp-title">Choose Your Plan</h2>
+            <p class="pp-sub">Get unlimited access to all Premium Tests, PDFs, Notes &amp; Future Updates.</p>
+          </div>
+          <div class="pp-cards" id="ppCardsWrap">
+            <div style="text-align:center;padding:40px;color:var(--muted);">
+              <span class="spinner-dark" style="border-top-color:var(--accent);border-color:var(--border);"></span>
+              &nbsp; Plans load ho rahe hain...
+            </div>
+          </div>
+          <div class="pp-secure">
+            <div class="pp-secure-row">🔒 Secure Payment &nbsp;—&nbsp; Powered by Razorpay</div>
+            <div class="pp-secure-methods">UPI &nbsp;•&nbsp; Cards &nbsp;•&nbsp; Net Banking &nbsp;•&nbsp; Wallets</div>
+          </div>
+          <div class="pp-faq">
+            <div class="pp-faq-title">❓ Frequently Asked Questions</div>
+            <div class="pp-faq-item"><b>Q. Will I get future updates?</b><p>A. Yes — sabhi future updates plan ke andar included hain.</p></div>
+            <div class="pp-faq-item"><b>Q. Can I access on mobile?</b><p>A. Yes — mobile, tablet aur desktop sabhi par chalega.</p></div>
+            <div class="pp-faq-item"><b>Q. Is payment secure?</b><p>A. 100% Secure — Razorpay ke through.</p></div>
+          </div>
+          <div class="pp-footer">
+            <div>Need Help?</div>
+            <button class="pp-wa-btn" onclick="window.open('${WHATSAPP_JOIN_LINK}','_blank')">💬 WhatsApp Support</button>
+          </div>
+        </div>`;
+      const plans = await fetchPricingPlans();
+      renderPricingCards(plans);
+    }
+
+    async function fetchPricingPlans() {
+      if (cachedPricingPlans) return cachedPricingPlans;
+      const r = await api({ action: "getPricingPlans" });
+      if (r.ok && Array.isArray(r.plans)) { cachedPricingPlans = r.plans; return r.plans; }
+      return [];
+    }
+
+    function renderPricingCards(plans) {
+      const cardsWrap = document.getElementById("ppCardsWrap");
+      if (!cardsWrap) return;
+      if (!plans.length) {
+        cardsWrap.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);">⚠ Plans abhi available nahi hain — "settings" sheet check karein</div>`;
+        return;
+      }
+      const medals = ["🥉", "🥈", "🥇"];
+      cardsWrap.innerHTML = "";
+      plans.forEach((plan, i) => {
+        const isYearly = /year/i.test(plan.label);
+        const medal = medals[Math.min(i, medals.length - 1)];
+        const monthsNum = isYearly ? 12 : (parseInt(plan.label) || 1);
+        const perMonth = plan.price / monthsNum;
+        const card = document.createElement("div");
+        card.className = "pp-card" + (isYearly ? " pp-card-premium" : "");
+        card.innerHTML = `
+          ${isYearly ? '<div class="pp-popular-badge">⭐ MOST POPULAR &nbsp;/&nbsp; 🔥 BEST VALUE</div>' : ''}
+          <div class="pp-medal">${medal}</div>
+          <div class="pp-plan-name">${plan.label} Plan</div>
+          <div class="pp-price">₹${plan.price}<span class="pp-price-sub">/${plan.label}</span></div>
+          <div class="pp-permonth">≈ ₹${perMonth.toFixed(0)} per month</div>
+          <ul class="pp-features">
+            <li>✔ Full Premium Access</li>
+            <li>✔ All Quiz Tests</li>
+            <li>✔ Premium PDFs &amp; Notes</li>
+            <li>✔ Regular Updates</li>
+            ${isYearly ? '<li>✔ Premium Support</li><li>✔ Lowest Cost Per Month</li>' : ''}
+          </ul>
+          <button class="pp-buy-btn" onclick="handleSubscribeClick(${i})">${isYearly ? '🚀 Get Premium' : 'Buy Now'}</button>
+        `;
+        cardsWrap.appendChild(card);
+      });
+      window._ppPlansData = plans;
+    }
+
+    // ✅ Abhi Razorpay nahi laga — seedha "Pro_Members" sheet me row daal raha hai.
+    // Jab Razorpay lagana ho, is function ke andar payment-success ke baad hi
+    // yeh api({action:"submitSubscription"...}) call karna.
+    async function handleSubscribeClick(idx) {
+      const plans = window._ppPlansData || [];
+      const plan = plans[idx];
+      if (!plan) return;
+      if (!student) {
+        alert("⚠ Subscribe karne ke liye pehle Register/Login karein");
+        showScreen("screenReg");
+        return;
+      }
+      const btns = document.querySelectorAll(".pp-buy-btn");
+      const btn = btns[idx];
+      const oldText = btn.textContent;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-dark" style="border-top-color:#0f1117;"></span>&nbsp; Processing...';
+
+      const r = await api({
+        action: "submitSubscription",
+        name: student.name || "", mobile: student.mobile || "",
+        gender: student.gender || "", email: student.email || "",
+        plan: plan.label, price: plan.price
+      });
+
+      if (r.ok) {
+        btn.innerHTML = "✅ Subscribed!";
+        alert(`🎉 Subscription successful!\n\nPlan: ${plan.label}\nMember ID: ${r.memberId}\nExpiry: ${r.expiryDate}`);
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = oldText;
+        alert("❌ Error: " + (r.error || "retry karein"));
+      }
     }
 
     function setupContactButtons() {
@@ -6575,50 +6744,6 @@
         setTimeout(() => URL.revokeObjectURL(url), 5000);
       }
       closePdfPopup();
-    }
-
-
-    // ✅ Plans hamesha Setting sheet se load honge — kabhi hardcode nahi
-    async function loadSubscriptionPlans() {
-      const r = await api({ action: "getPlanConfig" });
-      if (!r.ok) return;
-      // r.plans = [{plan:"1 Month", price:299}, {plan:"6 Months", price:899}, {plan:"1 Year", price:999}]
-      renderPlansUI(r.plans);
-    }
-
-    async function startSubscriptionPurchase(planName) {
-      const orderRes = await api({ action: "createRazorpayOrder", plan: planName, email: student?.email || "" });
-      if (!orderRes.ok) { alert("Order banane me error: " + orderRes.error); return; }
-
-      const options = {
-        key: orderRes.keyId,
-        amount: orderRes.amount,
-        currency: orderRes.currency,
-        order_id: orderRes.orderId,
-        name: "UPSC MCQ Practice",
-        description: planName + " Subscription",
-        handler: async function (response) {
-          const verifyRes = await api({
-            action: "verifyRazorpayPayment",
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            plan: planName,
-            name: student?.name || "", mobile: student?.mobile || "",
-            gender: student?.gender || "", email: student?.email || ""
-          });
-          if (verifyRes.ok) {
-            alert("✅ Subscription active ho gayi!");
-            // yahan quiz list refresh kar do: loadProQuizList()
-          } else {
-            alert("❌ Payment verify nahi hua: " + verifyRes.error);
-          }
-        },
-        prefill: { name: student?.name || "", email: student?.email || "", contact: student?.mobile || "" },
-        theme: { color: "#f59e0b" }
-      };
-      const rzp = new Razorpay(options);
-      rzp.open();
     }
   </script>
 </body>
