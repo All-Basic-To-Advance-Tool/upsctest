@@ -3239,6 +3239,35 @@
     .pp-footer { text-align: center; color: var(--muted); font-size: 0.88rem; }
     .pp-wa-btn { margin-top: 10px; background: #25D366; color: #fff; border: none; border-radius: 10px; padding: 11px 26px; font-weight: 700; font-size: 0.86rem; cursor: pointer; font-family: 'Rajdhani', sans-serif; }
     .pp-wa-btn:hover { background: #1da851; }
+
+    /* ══ FAQ ACCORDION ══ */
+    .pp-faq-item { cursor: pointer; }
+    .pp-faq-q { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .pp-faq-q b { margin-bottom: 0; }
+    .pp-faq-arrow { flex-shrink: 0; width: 18px; height: 18px; stroke: var(--accent); fill: none; stroke-width: 2; transition: transform .25s ease; }
+    .pp-faq-item.open .pp-faq-arrow { transform: rotate(180deg); }
+    .pp-faq-ans { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+    .pp-faq-item.open .pp-faq-ans { max-height: 200px; }
+    .pp-faq-ans p { padding-top: 8px; }
+
+    /* ══ WHATSAPP FAB (Pricing page) ══ */
+    .pp-wa-fab {
+      display: none; position: fixed; bottom: 22px; right: 18px; z-index: 950;
+      width: 56px; height: 56px; border-radius: 50%; background: #25D366;
+      align-items: center; justify-content: center; box-shadow: 0 6px 20px #25D36688;
+      cursor: pointer; border: none; transition: all .2s;
+    }
+    .pp-wa-fab:hover { transform: scale(1.08); }
+    .pp-wa-fab svg { width: 28px; height: 28px; fill: #fff; }
+
+    /* ══ PRICING CARDS — uniform button/height fix ══ */
+    .pp-card { display: flex; flex-direction: column; }
+    .pp-features { flex: 1; }
+    .pp-buy-btn { font-size: clamp(0.82rem, 1.6vw, 0.95rem); }
+    @media(max-width:480px) {
+      .pp-buy-btn { padding: 12px; }
+      .pp-price { font-size: 2rem; }
+    }
   </style>
 </head>
 
@@ -3914,7 +3943,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwVlcVlWBeynjeuod0PSyL8IaxLdEBlAqfpPvsnOSIzltsgasy2dfF5tXk5b3bMbKkhgw/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXU86KjE7ALqEgxx8GmOvPWDA5kFAYcKVB3LMGGBNZs9f1AlwL4eNOTkSmwKYzLHCUig/exec";
     const TEST_NAME = "6th His 1st chapter";
 
     // ════ GOOGLE SIGN-IN CONFIG ════
@@ -5192,6 +5221,7 @@
       const active = document.querySelector(".screen.active");
       if (active && active.id !== "screenPageContent") preLegalScreen = active.id;
 
+      hidePricingWaFab();
       // ✅ Pricing page ab "settings" sheet se live data ke saath alag render hota hai
       if (type === "pricing") {
         showScreen("screenPageContent");
@@ -5213,11 +5243,43 @@
     }
 
     function closeLegalPage() {
+      hidePricingWaFab();
       showScreen(preLegalScreen || "screenPreview");
     }
 
     // ══ PRICING PAGE — live plans + subscribe (Razorpay baad me yahin jodna) ══
     let cachedPricingPlans = null;
+
+    function toggleFaq(el) {
+      const wasOpen = el.classList.contains('open');
+      document.querySelectorAll('.pp-faq-item').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) el.classList.add('open');
+    }
+
+    function showPricingWaFab() {
+      let fab = document.getElementById("ppWaFab");
+      if (!fab) {
+        fab = document.createElement("button");
+        fab.id = "ppWaFab"; fab.className = "pp-wa-fab";
+        fab.innerHTML = `<svg viewBox="0 0 32 32"><path d="M16 .5C7.4.5.5 7.4.5 16c0 2.8.8 5.5 2.2 7.9L.5 31.5l7.8-2c2.3 1.3 4.9 2 7.7 2 8.6 0 15.5-6.9 15.5-15.5S24.6.5 16 .5zm0 28c-2.5 0-4.9-.7-7-1.9l-.5-.3-4.6 1.2 1.2-4.5-.3-.5C3.3 20.4 2.5 18.3 2.5 16 2.5 8.6 8.6 2.5 16 2.5S29.5 8.6 29.5 16 23.4 28.5 16 28.5zm7.9-9.4c-.4-.2-2.5-1.3-2.9-1.4-.4-.1-.7-.2-1 .2-.3.4-1.1 1.4-1.4 1.7-.3.3-.5.3-.9.1-.4-.2-1.7-.6-3.2-2-1.2-1-2-2.3-2.2-2.7-.2-.4 0-.6.2-.8.2-.2.4-.5.6-.7.2-.2.3-.4.4-.6.1-.3.1-.5 0-.7-.1-.2-1-2.3-1.3-3.2-.3-.8-.7-.7-1-.7h-.8c-.3 0-.7.1-1 .5-.3.4-1.3 1.3-1.3 3.2s1.3 3.7 1.5 4c.2.3 2.6 4 6.4 5.6.9.4 1.6.6 2.1.8.9.3 1.7.2 2.3.1.7-.1 2.5-1 2.8-2 .4-1 .4-1.8.3-2z"></path></svg>`;
+        fab.onclick = () => window.open(WHATSAPP_JOIN_LINK, '_blank');
+        document.body.appendChild(fab);
+      }
+      fab.style.display = "flex";
+    }
+    function hidePricingWaFab() {
+      const fab = document.getElementById("ppWaFab");
+      if (fab) fab.style.display = "none";
+    }
+
+    let cachedMemberStatus = null;
+    async function fetchMemberStatus() {
+      if (!student) return { subscribed: false };
+      if (cachedMemberStatus) return cachedMemberStatus;
+      const r = await api({ action: "getMemberStatus", email: student.email || "", mobile: student.mobile || "" });
+      cachedMemberStatus = r.ok ? r : { subscribed: false };
+      return cachedMemberStatus;
+    }
 
     async function renderPricingPageContent() {
       const wrap = document.getElementById("pageContentWrap");
@@ -5240,17 +5302,33 @@
           </div>
           <div class="pp-faq">
             <div class="pp-faq-title">❓ Frequently Asked Questions</div>
-            <div class="pp-faq-item"><b>Q. Will I get future updates?</b><p>A. Yes — sabhi future updates plan ke andar included hain.</p></div>
-            <div class="pp-faq-item"><b>Q. Can I access on mobile?</b><p>A. Yes — mobile, tablet aur desktop sabhi par chalega.</p></div>
-            <div class="pp-faq-item"><b>Q. Is payment secure?</b><p>A. 100% Secure — Razorpay ke through.</p></div>
+            <div class="pp-faq-item" onclick="toggleFaq(this)">
+              <div class="pp-faq-q"><b>Q. Will I get future updates?</b>
+                <svg class="pp-faq-arrow" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <div class="pp-faq-ans"><p>A. Yes — sabhi future updates plan ke andar included hain.</p></div>
+            </div>
+            <div class="pp-faq-item" onclick="toggleFaq(this)">
+              <div class="pp-faq-q"><b>Q. Can I access on mobile?</b>
+                <svg class="pp-faq-arrow" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <div class="pp-faq-ans"><p>A. Yes — mobile, tablet aur desktop sabhi par chalega.</p></div>
+            </div>
+            <div class="pp-faq-item" onclick="toggleFaq(this)">
+              <div class="pp-faq-q"><b>Q. Is payment secure?</b>
+                <svg class="pp-faq-arrow" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+              <div class="pp-faq-ans"><p>A. 100% Secure — Razorpay ke through.</p></div>
+            </div>
           </div>
           <div class="pp-footer">
-            <div>Need Help?</div>
-            <button class="pp-wa-btn" onclick="window.open('${WHATSAPP_JOIN_LINK}','_blank')">💬 WhatsApp Support</button>
+            <div>Need Help? — नीचे 💬 icon पर tap करें</div>
           </div>
         </div>`;
       const plans = await fetchPricingPlans();
-      renderPricingCards(plans);
+      const ms = await fetchMemberStatus();
+      renderPricingCards(plans, ms);
+      showPricingWaFab();
     }
 
     async function fetchPricingPlans() {
@@ -5260,27 +5338,42 @@
       return [];
     }
 
-    function renderPricingCards(plans) {
+    function renderPricingCards(plans, memberStatus) {
       const cardsWrap = document.getElementById("ppCardsWrap");
       if (!cardsWrap) return;
       if (!plans.length) {
         cardsWrap.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted);">⚠ Plans abhi available nahi hain — "settings" sheet check karein</div>`;
         return;
       }
+      const ms = memberStatus || { subscribed: false };
       const medals = ["🥉", "🥈", "🥇"];
       cardsWrap.innerHTML = "";
       plans.forEach((plan, i) => {
         const isYearly = /year/i.test(plan.label);
         const medal = medals[Math.min(i, medals.length - 1)];
         const monthsNum = isYearly ? 12 : (parseInt(plan.label) || 1);
-        const perMonth = plan.price / monthsNum;
+        // ✅ Jis plan ko user ne subscribe kiya hai uska price locked (settings sheet change se effect nahi)
+        const isThisSubscribed = ms.subscribed && ms.months === monthsNum;
+        const displayPrice = isThisSubscribed ? ms.price : plan.price;
+        const perMonth = displayPrice / monthsNum;
+
+        let btnHTML;
+        if (isThisSubscribed) {
+          btnHTML = `<button class="pp-buy-btn" disabled style="background:#22c55e;color:#fff;">✅ Subscribed (${ms.daysLeft} din baaki)</button>`;
+        } else if (ms.subscribed) {
+          const upgradeAmt = Math.max(0, plan.price - ms.price);
+          btnHTML = `<button class="pp-buy-btn" onclick="handleSubscribeClick(${i})">🔄 Upgrade (+₹${upgradeAmt})</button>`;
+        } else {
+          btnHTML = `<button class="pp-buy-btn" onclick="handleSubscribeClick(${i})">${isYearly ? '🚀 Get Premium' : 'Buy Now'}</button>`;
+        }
+
         const card = document.createElement("div");
         card.className = "pp-card" + (isYearly ? " pp-card-premium" : "");
         card.innerHTML = `
           ${isYearly ? '<div class="pp-popular-badge">⭐ MOST POPULAR &nbsp;/&nbsp; 🔥 BEST VALUE</div>' : ''}
           <div class="pp-medal">${medal}</div>
           <div class="pp-plan-name">${plan.label} Plan</div>
-          <div class="pp-price">₹${plan.price}<span class="pp-price-sub">/${plan.label}</span></div>
+          <div class="pp-price">₹${displayPrice}<span class="pp-price-sub">/${plan.label}</span></div>
           <div class="pp-permonth">≈ ₹${perMonth.toFixed(0)} per month</div>
           <ul class="pp-features">
             <li>✔ Full Premium Access</li>
@@ -5289,7 +5382,7 @@
             <li>✔ Regular Updates</li>
             ${isYearly ? '<li>✔ Premium Support</li><li>✔ Lowest Cost Per Month</li>' : ''}
           </ul>
-          <button class="pp-buy-btn" onclick="handleSubscribeClick(${i})">${isYearly ? '🚀 Get Premium' : 'Buy Now'}</button>
+          ${btnHTML}
         `;
         cardsWrap.appendChild(card);
       });
@@ -5322,8 +5415,13 @@
       });
 
       if (r.ok) {
-        btn.innerHTML = "✅ Subscribed!";
-        alert(`🎉 Subscription successful!\n\nPlan: ${plan.label}\nMember ID: ${r.memberId}\nExpiry: ${r.expiryDate}`);
+        btn.innerHTML = "✅ Done!";
+        cachedMemberStatus = null;
+        alert(r.upgraded
+          ? `🎉 Plan upgrade ho gaya!\n\nNaya Expiry: ${r.expiryDate}`
+          : `🎉 Subscription successful!\n\nPlan: ${plan.label}\nMember ID: ${r.memberId}\nExpiry: ${r.expiryDate}`);
+        const freshMs = await fetchMemberStatus();
+        renderPricingCards(plans, freshMs);
       } else {
         btn.disabled = false;
         btn.innerHTML = oldText;
