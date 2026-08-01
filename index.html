@@ -3990,7 +3990,7 @@
   </div>
 
   <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXU86KjE7ALqEgxx8GmOvPWDA5kFAYcKVB3LMGGBNZs9f1AlwL4eNOTkSmwKYzLHCUig/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxySInahOS_K-SjE995sXzPiTP5omrcSUuNoVUM8BZhq-NT_l4TfgRHJHPsdA0j4oImsQ/exec";
     const TEST_NAME = "6th His 1st chapter";
 
     // ════ GOOGLE SIGN-IN CONFIG ════
@@ -4778,7 +4778,7 @@
       }
     }
     const TESTS_CACHE_KEY = "upsc_tests_cache_v1";
-    const TESTS_CACHE_TTL = 5 * 60 * 1000; // 5 min — dobara khulne par turant load hoga
+    const TESTS_CACHE_TTL = 90 * 1000; // 90 sec — naya JSON jaldi reflect ho, phir bhi thoda cache rahe
 
     async function fetchAllTestsJSON() {
       if (allTestsData.length) return allTestsData; // ek baar load ho gaya to dobara mat karo
@@ -4797,11 +4797,16 @@
       let merged = [];
       const { owner, repo } = getRepoInfoFromLocation();
 
-      // ✅ Apni repo + public extra repos + private repos — SABHI ek saath (parallel) load karo
+      // ✅ FIX: ab sabhi repos (apni site ka repo + external public repos + private
+      // repos) — Apps Script backend ke authenticated GitHub token se load hote hain.
+      // Pehle apna/public repo seedha browser se (bina token) jaata tha — GitHub ka
+      // anonymous limit sirf 60 requests/hour per IP hai, jo jaldi khatam ho jaata tha
+      // aur wahi "site load nahi hui" / "sirf private repo dikha" wali random dikkat
+      // create kar raha tha. Ab sab backend token (5000 req/hour) se jaate hain.
       const jobs = [];
-      if (owner && repo) jobs.push(fetchJsonFilesFromRepo(owner, repo));
+      if (owner && repo) jobs.push(fetchPrivateRepoTests(owner, repo));
       EXTERNAL_JSON_REPOS.forEach(ext => {
-        if (ext.owner && ext.repo) jobs.push(fetchJsonFilesFromRepo(ext.owner, ext.repo, ext.branch));
+        if (ext.owner && ext.repo) jobs.push(fetchPrivateRepoTests(ext.owner, ext.repo, ext.branch));
       });
       PRIVATE_JSON_REPOS.forEach(ext => {
         if (ext.owner && ext.repo) jobs.push(fetchPrivateRepoTests(ext.owner, ext.repo, ext.branch));
