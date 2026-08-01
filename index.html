@@ -279,6 +279,52 @@
       line-height: 1.6;
     }
 
+    .test-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin: 12px 0 4px;
+    }
+
+    .test-meta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.74rem;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    .test-meta-badge.subject { border-color: var(--accent2); color: var(--accent2); }
+    .test-meta-badge.source { border-color: var(--gold); color: var(--gold); }
+
+    .plan-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 0.5px;
+      border: 1px solid;
+    }
+    .plan-tag.free { background: #0d2d1a; border-color: var(--correct); color: var(--correct); }
+    .plan-tag.paid { background: #1e1a0a; border-color: var(--accent); color: var(--accent); }
+
+    @media(max-width:480px) {
+      .test-meta-badge { font-size: 0.68rem; padding: 3px 10px; }
+      .plan-tag { font-size: 0.64rem; padding: 2px 8px; }
+    }
+
     .pdf-links-row {
       display: flex;
       gap: 10px;
@@ -3297,6 +3343,7 @@
     <div class="preview-hero">
       <div class="preview-badge">📚 UPSC MCQ Practice</div>
       <div class="preview-title" id="previewTitleText">6th History - 1st Chapter</div>
+      <div class="test-meta-row" id="previewMetaRow"></div>
       <div id="previewShareBtnWrap" style="display:none;margin-bottom:10px;">
         <button onclick="shareTestLink(activeTestId)"
           style="background:transparent;border:1px solid var(--accent2);color:var(--accent2);border-radius:20px;padding:5px 14px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;">🔗
@@ -4557,6 +4604,10 @@
       if (student) bannedAtBoot = await checkEmailStatusAndPromptIfNeeded();
       if (bannedAtBoot) return; // ban screen already dikha diya — yahin ruk jao
 
+      // ✅ Paid-member status pehle hi fetch karo — taaki free/paid tag dikhane
+      // se pehle pata ho ki yeh student paid hai ya nahi
+      if (student) { try { await fetchMemberStatus(); } catch (e) { /* ignore */ } }
+
       // ✅ Share link se aaya hai? (?test=ID) — to seedha wahi test load karo
       const urlParams = new URLSearchParams(window.location.search);
       const sharedTestId = urlParams.get("test");
@@ -4866,6 +4917,8 @@
       if (titleEl) titleEl.textContent = activeTestTitle;
       const shareWrap = document.getElementById("previewShareBtnWrap");
       if (shareWrap) shareWrap.style.display = activeTestId ? "block" : "none";
+      const metaRow = document.getElementById("previewMetaRow");
+      if (metaRow) metaRow.innerHTML = buildTestMetaBadges(test);
     }
 
     // ✅ Diye gaye folder path (array) ke andar jitne subfolders aur files hain unhe nikalta hai
@@ -5008,6 +5061,7 @@
         card.innerHTML = `
           <div class="preview-q-header">
             <span class="preview-q-num">📘 ${(t.questions || []).length} Q</span>
+            ${planBadgeHTML(t)}
             ${isNew ? '<span style="background:#ef4444;color:#fff;font-size:0.65rem;padding:2px 9px;border-radius:10px;font-family:Rajdhani,sans-serif;font-weight:700;letter-spacing:1px;">🆕 NEW</span>' : ''}
             ${dupCount > 1 ? '<span style="background:#f59e0b;color:#0f1117;font-size:0.65rem;padding:2px 9px;border-radius:10px;font-family:Rajdhani,sans-serif;font-weight:700;letter-spacing:1px;">⚠ DUPLICATE ID</span>' : ''}
             ${query ? `<span style="font-size:0.68rem;color:var(--muted);">📂 ${t._folderPath || 'Home'}</span>` : ''}
@@ -5279,6 +5333,29 @@
       const r = await api({ action: "getMemberStatus", email: student.email || "", mobile: student.mobile || "" });
       cachedMemberStatus = r.ok ? r : { subscribed: false };
       return cachedMemberStatus;
+    }
+
+    // ✅ Pro_Members sheet me email match ho gaya (paid member) — to kahi bhi
+    // free/paid tag nahi dikhana
+    function isPaidMember() {
+      return !!(cachedMemberStatus && cachedMemberStatus.subscribed);
+    }
+
+    // ✅ Sirf FREE/PAID tag — test list cards me use hota hai (chhota badge)
+    function planBadgeHTML(t) {
+      if (!t || !t.plan || isPaidMember()) return "";
+      const isFree = String(t.plan).toLowerCase() === "free";
+      return `<span class="plan-tag ${isFree ? 'free' : 'paid'}">${isFree ? '🆓 FREE' : '💎 PAID'}</span>`;
+    }
+
+    // ✅ Subject + Source + Plan — preview (quiz) page ke hero section me
+    function buildTestMetaBadges(t) {
+      if (!t) return "";
+      let html = "";
+      if (t.subject) html += `<span class="test-meta-badge subject">📘 ${t.subject}</span>`;
+      if (t.source) html += `<span class="test-meta-badge source">🏷 ${t.source}</span>`;
+      html += planBadgeHTML(t);
+      return html;
     }
 
     async function renderPricingPageContent() {
