@@ -4166,6 +4166,23 @@
   }
     ];
 
+    // ✅ NEW: purane format (flat questions array) aur naye format
+    // (wrapper: [{id,title,subject,source,plan,questions:[...]}]) — dono
+    // auto-detect ho kar normalize ho jaate hain, taaki dono tarah ka
+    // data paste karne par bina manually edit kiye MCQs load ho jaayein
+    (function normalizeQuestionsFormat() {
+      const isWrapperFormat = questions.length > 0 && questions[0] && Array.isArray(questions[0].questions);
+      if (!isWrapperFormat) return; // purana (flat) format hai — kuch mat karo
+      const flat = [];
+      questions.forEach(wrapper => {
+        if (wrapper && Array.isArray(wrapper.questions)) {
+          wrapper.questions.forEach(q => flat.push(q));
+        }
+      });
+      questions.length = 0;
+      flat.forEach(q => questions.push(q));
+    })();
+
     // ✅ Yaad rakhta hai ki HTML me pehle se MCQs the ya nahi (Mode 1 vs Mode 2)
     const HTML_HAS_OWN_QUESTIONS = questions.length > 0;
 
