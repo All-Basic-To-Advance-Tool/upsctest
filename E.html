@@ -3700,6 +3700,179 @@
         font-size: 2rem;
       }
     }
+
+    /* ══ SCHEDULE COUNTDOWN PAGE ══ */
+    .sch-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+      margin: 20px auto;
+      max-width: 900px;
+    }
+    @media(max-width: 760px) {
+      .sch-grid { grid-template-columns: 1fr; }
+    }
+    .sch-info-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+    }
+    .sch-info-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .sch-info-row:last-child { border-bottom: none; }
+    .sch-info-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .sch-info-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 0.5px;
+    }
+    .sch-info-value {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: var(--text);
+    }
+    .sch-count-card {
+      background: linear-gradient(135deg, #1e2a4a, #1a1d27);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 18px;
+      text-align: center;
+    }
+    .sch-count-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #2a1a5e;
+      border: 1px solid #7c3aed;
+      color: #c4b5fd;
+      border-radius: 20px;
+      padding: 5px 16px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.76rem;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+    .sch-count-nums {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .sch-count-box { min-width: 54px; }
+    .sch-count-box .n {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .sch-count-box .l { font-size: 0.7rem; color: var(--muted); }
+    .sch-count-sep { height: 1px; background: var(--border); margin: 12px 0; }
+    .sch-sched-on {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #2d1a4a;
+      border: 1px solid #ec4899;
+      color: #f9a8d4;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .sch-sched-date {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    .sch-sched-note { color: var(--muted); font-size: 0.78rem; }
+    .sch-lock-note {
+      max-width: 900px;
+      margin: 0 auto 18px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .sch-reg-box {
+      max-width: 900px;
+      margin: 0 auto 40px;
+      background: linear-gradient(135deg, #241a4a, #1a1d27);
+      border: 1px solid #7c3aed55;
+      border-radius: 16px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .sch-reg-left { display: flex; gap: 14px; align-items: center; }
+    .sch-reg-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #2a1a5e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .sch-reg-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      color: var(--text);
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+    .sch-reg-sub { color: var(--muted); font-size: 0.8rem; }
+    .sch-reg-btn {
+      background: var(--accent);
+      color: #0f1117;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 26px;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 1px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    @media(max-width: 560px) {
+      .sch-reg-box { flex-direction: column; align-items: stretch; text-align: center; }
+      .sch-reg-left { flex-direction: column; }
+      .sch-reg-btn { width: 100%; }
+    }
   </style>
 </head>
 
@@ -3819,14 +3992,7 @@
 
   <!-- ══ SCHEDULE COUNTDOWN SCREEN ══ -->
   <div class="screen" id="screenSchedule">
-    <div
-      style="min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;">
-      <div style="font-size:2.4rem;margin-bottom:14px;">⏳</div>
-      <div
-        style="font-family:'Rajdhani',sans-serif;font-size:1.9rem;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:22px;"
-        id="scheduleCountdownDisplay">--:--:--</div>
-      <div style="color:var(--muted);font-size:0.9rem;" id="scheduleDateDisplay">—</div>
-    </div>
+    <div id="scheduleWrap" style="max-width:960px;margin:20px auto 40px;padding:0 4px;"></div>
   </div>
 
   <!-- ✅ FAB REGISTER BUTTON -->
@@ -3857,7 +4023,7 @@
       </div>
       <div class="form-error" id="regError">⚠ सभी fields भरें</div>
       <button class="btn-primary" id="regBtn" onclick="submitRegistration()">Register करें →</button>
-      <button class="btn-secondary" onclick="showScreen('screenPreview')">← वापस जाएं</button>
+      <button class="btn-secondary" onclick="goBackFromReg()">← वापस जाएं</button>
     </div>
   </div>
 
@@ -4558,15 +4724,108 @@
     }
 
     function showScheduleScreen(scheduleDate) {
+      showScreen("screenSchedule");
+      renderScheduleScreen(scheduleDate);
+    }
+
+    function scheduleInfoRow(emoji, bg, label, value) {
+      return `<div class="sch-info-row">
+        <div class="sch-info-icon" style="background:${bg};">${emoji}</div>
+        <div><div class="sch-info-label">${label}</div><div class="sch-info-value">${value}</div></div>
+      </div>`;
+    }
+
+    function handleScheduleRegisterClick() {
+      regRedirectTarget = 'password';
+      showScreen('screenReg');
+    }
+
+    function goBackFromReg() {
+      if (activeTestSchedule && activeTestSchedule.getTime() > Date.now()) {
+        showScheduleScreen(activeTestSchedule);
+      } else {
+        showScreen('screenPreview');
+      }
+    }
+
+    function renderScheduleScreen(scheduleDate) {
+      const wrap = document.getElementById("scheduleWrap");
+      if (!wrap) return;
       clearInterval(scheduleCountdownInterval);
-      document.getElementById("scheduleDateDisplay").textContent = "📅 " + scheduleDate.toLocaleString("en-IN", {
+
+      const total = questions.length;
+      const timeSec = Math.round((total / TOTAL_Q_REF) * TOTAL_TIME);
+      const mins = Math.max(1, Math.round(timeSec / 60));
+      const subject = (embeddedTestMeta && embeddedTestMeta.subject) || activeTestSubject || "";
+      const source = (embeddedTestMeta && embeddedTestMeta.source) || activeTestSource || "";
+      const isFree = activeTestPlan !== "paid";
+
+      const dateStr = scheduleDate.toLocaleString("en-IN", {
         timeZone: "Asia/Kolkata", day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit'
       });
-      showScreen("screenSchedule");
+
+      wrap.innerHTML = `
+        <div class="preview-hero" style="margin-bottom:0;">
+          <div class="preview-badge">📚 UPSC MCQ Practice</div>
+          <div class="preview-title">${activeTestTitle || TEST_NAME}</div>
+          <div class="test-meta-row">
+            ${subject ? `<span class="test-meta-badge subject">📘 ${subject}</span>` : ""}
+            ${source ? `<span class="test-meta-badge source">🏷 ${source}</span>` : ""}
+            <span class="plan-tag ${isFree ? 'free' : 'paid'}">${isFree ? '🆓 FREE' : '💎 PAID'}</span>
+          </div>
+        </div>
+        <div class="sch-grid">
+          <div class="sch-info-card">
+            ${subject ? scheduleInfoRow('📘', '#1e2d4a', 'Subject', subject) : ''}
+            ${source ? scheduleInfoRow('📄', '#0d2d1a', 'Source', source) : ''}
+            ${scheduleInfoRow('💎', '#1e2d4a', 'Plan', isFree ? 'FREE' : 'PAID')}
+            ${scheduleInfoRow('⏱', '#3a2a0a', 'Total Time', mins + ' मिनट')}
+            ${scheduleInfoRow('✅', '#0d2d1a', 'Right Marks', '+' + CORRECT_M)}
+            ${scheduleInfoRow('❌', '#2d0d0d', 'Wrong Marks', WRONG_M.toFixed(2))}
+          </div>
+          <div class="sch-count-card">
+            <div class="sch-count-badge">⏰ LIVE COUNTDOWN</div>
+            <div class="sch-count-nums" id="schCountNums"></div>
+            <div class="sch-count-sep"></div>
+            <div class="sch-sched-on">📅 SCHEDULED ON</div>
+            <div class="sch-sched-date">${dateStr}</div>
+            <div class="sch-sched-note">निर्धारित समय पर ही टेस्ट शुरू होगा।</div>
+          </div>
+        </div>
+        <div class="sch-lock-note">
+          🔒 टेस्ट शुरू होने से पहले प्रश्न प्रिव्यू उपलब्ध नहीं है।
+        </div>
+        <div class="sch-reg-box" id="schRegBox">
+          ${!student ? `
+            <div class="sch-reg-left">
+              <div class="sch-reg-icon">📝</div>
+              <div>
+                <div class="sch-reg-title">पहले रजिस्ट्रेशन करें</div>
+                <div class="sch-reg-sub">रजिस्ट्रेशन करने के बाद आप निर्धारित समय तक काउंटडाउन पेज पर रहेंगे।</div>
+              </div>
+            </div>
+            <button class="sch-reg-btn" onclick="handleScheduleRegisterClick()">📝 रजिस्टर करें</button>
+          ` : `
+            <div class="sch-reg-left">
+              <div class="sch-reg-icon">✅</div>
+              <div>
+                <div class="sch-reg-title">आप रजिस्टर हो चुके हैं</div>
+                <div class="sch-reg-sub">निर्धारित समय के बाद यह पेज स्वचालित रूप से टेस्ट पेज में बदल जाएगा।</div>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+
       function tick() {
         const diff = scheduleDate.getTime() - Date.now();
         if (diff <= 0) {
           clearInterval(scheduleCountdownInterval);
+          activeTestSchedule = null;
+          rebuildPreview();
+          renderPdfLinkButtons();
+          const qc = document.getElementById("previewQCount");
+          if (qc) qc.textContent = questions.length;
           showScreen("screenPreview");
           return;
         }
@@ -4574,8 +4833,15 @@
         const h = Math.floor((diff % 86400000) / 3600000);
         const mi = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
-        document.getElementById("scheduleCountdownDisplay").textContent =
-          (d > 0 ? d + "d " : "") + String(h).padStart(2, '0') + ":" + String(mi).padStart(2, '0') + ":" + String(s).padStart(2, '0');
+        const nums = document.getElementById("schCountNums");
+        if (nums) {
+          nums.innerHTML = `
+            <div class="sch-count-box"><div class="n">${String(d).padStart(2, '0')}</div><div class="l">दिन</div></div>
+            <div class="sch-count-box"><div class="n">${String(h).padStart(2, '0')}</div><div class="l">घंटे</div></div>
+            <div class="sch-count-box"><div class="n">${String(mi).padStart(2, '0')}</div><div class="l">मिनट</div></div>
+            <div class="sch-count-box"><div class="n">${String(s).padStart(2, '0')}</div><div class="l">सेकंड</div></div>
+          `;
+        }
       }
       tick();
       scheduleCountdownInterval = setInterval(tick, 1000);
@@ -4697,6 +4963,8 @@
     let activeTestId = null;     // JSON se load hui current test ki ID
     let activeTestTitle = "";    // current test ka title (preview me dikhane ke liye)
     let activeTestPlan = "free"; // current test "free" hai ya "paid" — password se pehle isi se check hota hai
+    let activeTestSubject = ""; // ✅ schedule page par dikhane ke liye
+    let activeTestSource = "";  // ✅ schedule page par dikhane ke liye
     let answered = [], scores = { correct: 0, wrong: 0, marks: 0 };
     let timerOn = true, timerInterval = null, timeLeft = 0, quizStart = 0;
     let quizLocked = false, quizDone = false, activeFilter = null;
@@ -5228,7 +5496,11 @@
           rebuildPreview();
           renderPdfLinkButtons();
           document.getElementById("previewQCount").textContent = questions.length;
-          showScreen("screenPreview");
+          if (activeTestSchedule && activeTestSchedule.getTime() > Date.now()) {
+            showScheduleScreen(activeTestSchedule);
+          } else {
+            showScreen("screenPreview");
+          }
           updateFabRegisterVisibility();
           createAllTestFab();
           runBackgroundSecurityChecks();
@@ -5256,6 +5528,8 @@
           activeTestId = embeddedTestMeta.id;
           activeTestTitle = embeddedTestMeta.title;
           activeTestPlan = embeddedTestMeta.plan;
+          activeTestSubject = embeddedTestMeta.subject || "";
+          activeTestSource = embeddedTestMeta.source || "";
           activeTestSchedule = embeddedTestMeta.schedule ? parseScheduleDate(embeddedTestMeta.schedule) : null;
           const titleEl = document.getElementById("previewTitleText");
           if (titleEl) titleEl.textContent = activeTestTitle;
@@ -5265,7 +5539,11 @@
         rebuildPreview();
         renderPdfLinkButtons();
         document.getElementById("previewQCount").textContent = questions.length;
-        showScreen("screenPreview");
+        if (activeTestSchedule && activeTestSchedule.getTime() > Date.now()) {
+          showScheduleScreen(activeTestSchedule);
+        } else {
+          showScreen("screenPreview");
+        }
       } else {
         // ══ MODE 2: HTML me MCQs nahi — JSON list hi seedha home page banao ══
         await fetchAllTestsJSON();
@@ -5567,6 +5845,8 @@
       activeTestId = test.id || null;
       activeTestTitle = test.title || TEST_NAME;
       activeTestPlan = String(test.plan || "free").toLowerCase();
+      activeTestSubject = test.subject || "";
+      activeTestSource = test.source || "";
       activeTestSchedule = test.schedule ? parseScheduleDate(test.schedule) : null;
       const titleEl = document.getElementById("previewTitleText");
       if (titleEl) titleEl.textContent = activeTestTitle;
@@ -5739,7 +6019,11 @@
       rebuildPreview();
       renderPdfLinkButtons();
       document.getElementById("previewQCount").textContent = questions.length;
-      showScreen("screenPreview");
+      if (activeTestSchedule && activeTestSchedule.getTime() > Date.now()) {
+        showScheduleScreen(activeTestSchedule);
+      } else {
+        showScreen("screenPreview");
+      }
       updateFabRegisterVisibility();
     }
 
@@ -6170,7 +6454,8 @@
       const fab = document.getElementById("proPlanFab");
       if (!fab) return;
       const onHomeScreen = document.getElementById("screenPreview").classList.contains("active")
-        || document.getElementById("screenTestList").classList.contains("active");
+        || document.getElementById("screenTestList").classList.contains("active")
+        || document.getElementById("screenSchedule").classList.contains("active");
       const shouldShow = onHomeScreen && cachedPricingEnabled && !isPaidMember();
       fab.classList.toggle("visible", shouldShow);
     }
